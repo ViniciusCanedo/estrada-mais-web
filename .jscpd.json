@@ -1,0 +1,15 @@
+{
+  "threshold": 3,
+  "minTokens": 50,
+  "minLines": 6,
+  "reporters": ["console"],
+  "ignore": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/shared/http/**",
+    "**/.nuxt/**",
+    "**/.output/**",
+    "**/coverage/**"
+  ],
+  "gitignore": true
+}

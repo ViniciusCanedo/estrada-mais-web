@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "app/pages/**/*.vue",
+    "app/layouts/**/*.vue",
+    "app/composables/**/*.ts",
+    "app/stores/**/*.ts",
+    "shared/http/index.ts",
+    "server/**/*.ts",
+    "shared/**/*.ts",
+    "test/**/*.{spec,test}.ts"
+  ],
+  "project": ["app/**/*.{ts,vue}", "server/**/*.ts", "shared/**/*.ts", "test/**/*.{spec,test}.ts"],
+  "ignoreDependencies": [
+    "@iconify-json/lucide",
+    "@nuxt/fonts",
+    "@nuxt/icon",
+    "@secretlint/secretlint-rule-preset-recommend",
+    "@tailwindcss/vite",
+    "vue-tsc"
+  ],
+  "ignoreBinaries": ["k6"]
+}

@@ -1,0 +1,31 @@
+# Dependências e builds locais
+node_modules
+.nuxt
+.output
+.nitro
+.cache
+.data
+dist
+
+# Testes e relatórios
+coverage
+playwright-report
+test-results
+
+# Controle de versão e ferramentas de editor/agente
+.git
+.gitignore
+.husky
+.agents
+.idea
+.fleet
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Arquivos de ambiente locais (segurança §8)
+.env
+.env.*
+!.env.example
