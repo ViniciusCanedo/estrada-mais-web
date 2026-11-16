@@ -1,7 +1,10 @@
 services:
   app:
-    image: sistemastvem/nuxt_scaffolding:latest
-    container_name: nuxt-scaffolding-prod
+    image: sistemastvem/estrada-mais-web:latest
+    build:
+      context: .
+      dockerfile: docker/prod/Dockerfile
+    container_name: estrada-mais-prod
     ports:
       - '${PORT:-3000}:3000'
     env_file:
@@ -12,6 +15,16 @@ services:
       NITRO_HOST: 0.0.0.0
       NITRO_PORT: 3000
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-/api}
+      NUXT_PUBLIC_APP_URL: ${NUXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NUXT_DATABASE_URL: ${NUXT_DATABASE_URL:-/app/data/estrada.db}
+      NUXT_APP_SECRET: ${NUXT_APP_SECRET}
+      NUXT_SMTP_HOST: ${NUXT_SMTP_HOST:-}
+      NUXT_SMTP_PORT: ${NUXT_SMTP_PORT:-587}
+      NUXT_SMTP_USER: ${NUXT_SMTP_USER:-}
+      NUXT_SMTP_PASS: ${NUXT_SMTP_PASS:-}
+      NUXT_SMTP_FROM: ${NUXT_SMTP_FROM:-Estrada+ Telemetria <no-reply@estradamais.com.br>}
+    volumes:
+      - estrada_sqlite_data:/app/data
     healthcheck:
       test:
         [
@@ -23,5 +36,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     restart: unless-stopped
+
+volumes:
+  estrada_sqlite_data:
+    name: estrada_sqlite_data

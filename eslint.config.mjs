@@ -5,6 +5,16 @@ import sonarjs from 'eslint-plugin-sonarjs'
 import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility'
 import eslintConfigPrettier from 'eslint-config-prettier'
 
+const NO_PROCESS_ENV_RULE = {
+  selector: "MemberExpression[object.name='process'][property.name='env']",
+  message: 'Use runtimeConfig, não process.env.',
+}
+
+const NO_ZOD_OBJECT_OUTSIDE_SCHEMAS_RULE = {
+  selector: "CallExpression[callee.object.name='z'][callee.property.name='object']",
+  message: 'Schemas Zod (z.object) devem ser declarados exclusivamente em shared/schemas/.',
+}
+
 export default withNuxt(
   {
     ignores: [
@@ -12,7 +22,6 @@ export default withNuxt(
       'playwright-report/**',
       'test-results/**',
       'coverage/**',
-      'shared/http/**',
       'test/load/**',
     ],
   },
@@ -39,11 +48,35 @@ export default withNuxt(
       'no-console': 'error',
       'no-debugger': 'error',
       'no-warning-comments': ['error', { terms: ['todo', 'fixme', 'hack'], location: 'start' }],
-      'no-restricted-syntax': [
+      'no-restricted-syntax': ['error', NO_PROCESS_ENV_RULE],
+    },
+  },
+  {
+    files: ['app/**/*.{ts,tsx,mts,cts,vue}', 'server/**/*.{ts,tsx,mts,cts}'],
+    rules: {
+      'no-restricted-syntax': ['error', NO_PROCESS_ENV_RULE, NO_ZOD_OBJECT_OUTSIDE_SCHEMAS_RULE],
+    },
+  },
+  {
+    files: ['app/components/**/*.{ts,vue}'],
+    rules: {
+      'no-restricted-globals': [
         'error',
         {
-          selector: "MemberExpression[object.name='process'][property.name='env']",
-          message: 'Use runtimeConfig, não process.env.',
+          name: '$fetch',
+          message: 'Componentes não devem realizar I/O direto; use composables ou stores.',
+        },
+        {
+          name: 'useFetch',
+          message: 'Componentes não devem realizar I/O direto; use composables ou stores.',
+        },
+        {
+          name: 'useAsyncData',
+          message: 'Componentes não devem realizar I/O direto; use composables ou stores.',
+        },
+        {
+          name: 'useApiFetch',
+          message: 'Componentes não devem realizar I/O direto; use composables ou stores.',
         },
       ],
     },
@@ -128,7 +161,13 @@ export default withNuxt(
     },
   },
   {
-    files: ['nuxt.config.ts', 'orval.config.ts', 'playwright.config.ts', 'scripts/**/*.mjs'],
+    files: ['server/database/migrate.ts', 'server/database/seed.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', NO_ZOD_OBJECT_OUTSIDE_SCHEMAS_RULE],
+    },
+  },
+  {
+    files: ['nuxt.config.ts', 'drizzle.config.ts', 'playwright.config.ts', 'scripts/**/*.mjs'],
     rules: {
       'no-restricted-syntax': 'off',
     },

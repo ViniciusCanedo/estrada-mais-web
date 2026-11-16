@@ -5,7 +5,6 @@
     "app/layouts/**/*.vue",
     "app/composables/**/*.ts",
     "app/stores/**/*.ts",
-    "shared/http/index.ts",
     "server/**/*.ts",
     "shared/**/*.ts",
     "test/**/*.{spec,test}.ts"

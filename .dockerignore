@@ -7,10 +7,22 @@ node_modules
 .data
 dist
 
-# Testes e relatórios
+# Banco de dados SQLite local
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+
+# Testes, relatórios e documentação
 coverage
 playwright-report
 test-results
+test
+docs
+estrada-desktop.html
 
 # Controle de versão e ferramentas de editor/agente
 .git
@@ -19,6 +31,7 @@ test-results
 .agents
 .idea
 .fleet
+.vscode
 .DS_Store
 
 # Logs

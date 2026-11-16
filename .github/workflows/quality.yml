@@ -1,0 +1,77 @@
+name: Quality Gates & Docker Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality Gates (G1-G13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NUXT_PUBLIC_API_BASE: /api
+      NUXT_PUBLIC_APP_URL: http://localhost:3000
+      NUXT_DATABASE_URL: ./.data/sqlite/test-ci.db
+      NUXT_APP_SECRET: ci-secret-key-with-at-least-32-characters-long-12345
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 24 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies (deterministic)
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run database migrations & seed for E2E
+        run: |
+          npm run db:migrate
+          npm run db:seed
+
+      - name: Execute Canonical Quality Gate (G1 to G13)
+        run: npm run quality
+
+  docker-verify:
+    name: Verify Production Docker Image & Healthcheck
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build production Docker image
+        run: docker build -f docker/prod/Dockerfile -t estrada-mais-web:ci .
+
+      - name: Boot container and verify /api/health
+        run: |
+          docker run -d --name estrada-ci-test \
+            -p 3000:3000 \
+            -e NUXT_APP_SECRET="ci-prod-secret-key-minimum-32-chars-987654" \
+            estrada-mais-web:ci
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/api/health | grep -q '"status":"ok"'; then
+              echo "Container healthy!"
+              docker rm -f estrada-ci-test
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs estrada-ci-test
+          docker rm -f estrada-ci-test
+          exit 1
