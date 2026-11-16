@@ -1,11 +1,12 @@
 import { expect, test } from '@nuxt/test-utils/playwright'
+import { loginAsDefaultDriver } from './helpers/auth'
 
 test.describe('Shell Night Highway, Navegação e Modais Globais', () => {
   test('navega entre telas pela Sidebar atualizando breadcrumb e rota ativa', async ({
     page,
     goto,
   }) => {
-    await goto('/', { waitUntil: 'hydration' })
+    await loginAsDefaultDriver(page, goto)
 
     await expect(page.getByTestId('top-bar-breadcrumb')).toHaveText('PAINEL PRINCIPAL')
     await expect(page.getByTestId('nav-dashboard')).toHaveAttribute('aria-current', 'page')
@@ -33,7 +34,7 @@ test.describe('Shell Night Highway, Navegação e Modais Globais', () => {
     page,
     goto,
   }) => {
-    await goto('/', { waitUntil: 'hydration' })
+    await loginAsDefaultDriver(page, goto)
 
     await expect(page.getByTestId('active-competence-label')).toHaveText('SETEMBRO 2026')
 
@@ -61,7 +62,7 @@ test.describe('Shell Night Highway, Navegação e Modais Globais', () => {
     page,
     goto,
   }) => {
-    await goto('/', { waitUntil: 'hydration' })
+    await loginAsDefaultDriver(page, goto)
     await expect(page.getByTestId('nav-design-system')).toHaveCount(0)
 
     await goto('/design-system', { waitUntil: 'hydration' })
