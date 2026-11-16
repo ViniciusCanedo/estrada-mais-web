@@ -19,4 +19,4 @@
 - [x] 4.1 Criar `test/unit/expense.repository.spec.ts`, `test/unit/expense.service.spec.ts` e `test/unit/expense.endpoints.spec.ts` cobrindo validação condicional, limpeza de litros, `pricePerLiterReais`, contadores do mês, endpoints `GET/POST/PUT/DELETE` (`401`/`400`/`404`/`200`/`201`) e cobertura `>= 90%`
 - [x] 4.2 Criar `test/nuxt/expense-modal.spec.ts` e `test/nuxt/expenses-page.spec.ts`, e atualizar `test/nuxt/layout.spec.ts` cobrindo o comportamento reativo do modal, barra de categorias, tabela e estados
 - [x] 4.3 Criar `test/e2e/expenses.spec.ts` com motorista isolado (`createTestDriver`) validando lançamento via `+ Lançar Despesa`, filtro por categoria, `PREÇO/L`, edição e exclusão
-- [ ] 4.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
+- [x] 4.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
