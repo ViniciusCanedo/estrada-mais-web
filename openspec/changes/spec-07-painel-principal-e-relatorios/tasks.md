@@ -1,7 +1,7 @@
 ## 1. Schemas Zod e Utilitários Compartilhados
 
-- [ ] 1.1 Criar `shared/schemas/report.schema.ts` com `dashboardQuerySchema`, `monthlyTrendPointSchema`, `reportDriverProfileSchema`, `dashboardSummaryResponseSchema`, `dashboardFullPayloadSchema` e tipos inferidos reutilizando `competenceMonthSchema`, `tripDtoSchema` e `expenseDtoSchema`
-- [ ] 1.2 Extrair lógica pura de competência mensal e série de 6 meses para `shared/utils/competence.ts` e reexportar `shiftCompetenceMonth` / `formatCompetenceMonthLabel` em `app/composables/useCompetencePeriod.ts`
+- [x] 1.1 Criar `shared/schemas/report.schema.ts` com `dashboardQuerySchema`, `monthlyTrendPointSchema`, `reportDriverProfileSchema`, `dashboardSummaryResponseSchema`, `dashboardFullPayloadSchema` e tipos inferidos reutilizando `competenceMonthSchema`, `tripDtoSchema` e `expenseDtoSchema`
+- [x] 1.2 Extrair lógica pura de competência mensal e série de 6 meses para `shared/utils/competence.ts` e reexportar `shiftCompetenceMonth` / `formatCompetenceMonthLabel` em `app/composables/useCompetencePeriod.ts`
 
 ## 2. Repository, Service e Endpoints HTTP
 
