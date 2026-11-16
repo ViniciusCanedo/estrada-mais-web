@@ -102,6 +102,7 @@ npm run dev
 | `npm run db:generate`     | Gera arquivos de migration SQL a partir de `server/database/schema.ts` (`drizzle-kit`) |
 | `npm run db:migrate`      | Aplica as migrations pendentes no banco SQLite configurado em `NUXT_DATABASE_URL`      |
 | `npm run db:seed`         | Popula o banco local com dados iniciais de desenvolvimento (`drizzle-seed`)            |
+| `npm run db:backup`       | Gera snapshot online atômico do SQLite (`better-sqlite3 .backup()`) com retenção de 14 |
 | `npm run db:studio`       | Abre o Drizzle Studio para inspeção visual do banco SQLite                             |
 | `npm run check`           | Execução rápida de `typecheck`, `lint` e `format:check`                                |
 | `npm run format`          | Formata todos os arquivos com Prettier                                                 |
@@ -141,3 +142,13 @@ docker compose -f docker-compose.prod.yml up -d
 ```bash
 docker compose -f docker-compose.prod.yml ps
 ```
+
+4. **Backup Online Consistente do SQLite (Modo WAL) e Retenção**:
+
+Antes de cada atualização de versão em produção, gere um snapshot atômico (`pre-deploy-YYYYMMDD-HHMMSS.db`) no diretório de backups mantendo automaticamente os **14 snapshots mais recentes**:
+
+```bash
+npm run db:backup
+```
+
+Em caso de necessidade de rollback de banco de dados após uma falha crítica, pare o container, restaure o snapshot desejado de `/app/data/backups/` para `/app/data/estrada.db` (removendo os arquivos auxiliares `.db-wal` e `.db-shm`) e suba a tag anterior da imagem Docker.
