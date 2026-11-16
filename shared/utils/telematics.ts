@@ -2,6 +2,14 @@ import { BRAZILIAN_STATES, type BrazilianState } from '../types/domain'
 import { fromCents, fromDeciliters, toCents, toDeciliters } from './units'
 
 const BRAZILIAN_STATE_SET = new Set<string>(BRAZILIAN_STATES)
+const LAST_90_DAYS_OFFSET = 89
+
+export type TripPeriodFilter = 'month' | 'last90days' | 'year'
+
+export interface TripDateBounds {
+  startDate?: string
+  endDate?: string
+}
 
 export interface ParsedCityAndState {
   city: string
@@ -133,6 +141,58 @@ export function calculateTripTelematics(input: TripTelematicsInput): TripTelemat
     distanceKm,
     kmPerLiter: validFuelLiters > 0 ? distanceKm / validFuelLiters : 0,
     costPerKmReais: fromCents(totalCostCents) / distanceKm,
+  }
+}
+
+function formatUtcIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+function resolveMonthEndUtc(month: string): Date {
+  const [yearPart, monthPart] = month.split('-')
+  return new Date(Date.UTC(Number(yearPart), Number(monthPart), 0))
+}
+
+/**
+ * Resolve o intervalo de datas [startDate, endDate] (ISO YYYY-MM-DD) para os períodos de listagem de viagens.
+ */
+export function resolveTripDateRange(
+  period: TripPeriodFilter,
+  month: string | undefined,
+  referenceDate: Date = new Date(),
+): TripDateBounds {
+  if (period === 'month') {
+    if (!month) {
+      return {}
+    }
+    return {
+      startDate: `${month}-01`,
+      endDate: formatUtcIsoDate(resolveMonthEndUtc(month)),
+    }
+  }
+
+  if (period === 'last90days') {
+    const anchorEnd = month
+      ? resolveMonthEndUtc(month)
+      : new Date(
+          Date.UTC(
+            referenceDate.getUTCFullYear(),
+            referenceDate.getUTCMonth(),
+            referenceDate.getUTCDate(),
+          ),
+        )
+    const anchorStart = new Date(anchorEnd.getTime())
+    anchorStart.setUTCDate(anchorStart.getUTCDate() - LAST_90_DAYS_OFFSET)
+    return {
+      startDate: formatUtcIsoDate(anchorStart),
+      endDate: formatUtcIsoDate(anchorEnd),
+    }
+  }
+
+  const year = month ? month.slice(0, 4) : String(referenceDate.getUTCFullYear())
+  return {
+    startDate: `${year}-01-01`,
+    endDate: `${year}-12-31`,
   }
 }
 
