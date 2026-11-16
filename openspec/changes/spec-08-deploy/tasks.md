@@ -13,5 +13,5 @@
 
 ## 3. Verificação Arquitetural de Deploy, CI/CD e Quality Gates
 
-- [ ] 3.1 Revisar `docker/prod/Dockerfile`, `docker-compose.prod.yml`, `.dockerignore` e `.github/workflows/quality.yml` conforme `docs/raw_specs/08-deploy.md` e expandir `test/arch/docker.spec.ts` para validar o workflow CI/CD (`quality` e `docker-verify`), `scripts/backup-sqlite.mjs` e o script `db:backup`.
-- [ ] 3.2 Executar formatação (`npm run format`) e validar aprovação integral no gate canônico `npm run quality` (G1 a G13).
+- [x] 3.1 Revisar `docker/prod/Dockerfile`, `docker-compose.prod.yml`, `.dockerignore` e `.github/workflows/quality.yml` conforme `docs/raw_specs/08-deploy.md` e expandir `test/arch/docker.spec.ts` para validar o workflow CI/CD (`quality` e `docker-verify`), `scripts/backup-sqlite.mjs` e o script `db:backup`.
+- [x] 3.2 Executar formatação (`npm run format`) e validar aprovação integral no gate canônico `npm run quality` (G1 a G13).
