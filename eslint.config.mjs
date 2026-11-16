@@ -8,6 +8,7 @@ import eslintConfigPrettier from 'eslint-config-prettier'
 export default withNuxt(
   {
     ignores: [
+      '.worktrees/**',
       'playwright-report/**',
       'test-results/**',
       'coverage/**',

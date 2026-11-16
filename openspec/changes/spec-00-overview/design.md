@@ -53,8 +53,9 @@ Restrições normativas (`.agents/CONSTITUTION.md`):
 
 ### 4. Preservação de `estrada-desktop.html` no Prettier
 
-- **Decisão:** Verificar se `estrada-desktop.html` já atende `prettier --check` antes de decidir por adicioná-lo ao `.prettierignore`. Como o arquivo já passa integralmente em `prettier --check`, apenas `.worktrees` será adicionado ao `.prettierignore` (evitando entradas de ignore desnecessárias).
-- **Alternativas consideradas:** Adicionar `estrada-desktop.html` ao `.prettierignore` preventivamente (desnecessário porque o arquivo já está formatado conforme o `.prettierrc` do projeto e permanece inalterado).
+- **Decisão:** Adicionar `estrada-desktop.html` (além de `.worktrees`) ao `.prettierignore` e formatar `.agent/` e `docs/raw_specs/` com Prettier.
+- **Motivação:** `estrada-desktop.html` é um mockup HTML estático de referência externa; preservá-lo no `.prettierignore` mantém o arquivo original intacto byte a byte e evita que o `lint-staged` altere o mockup no commit. Já `.agent/` e `docs/raw_specs/` são documentos Markdown do projeto e passam a atender integralmente ao `prettier --check .`.
+- **Alternativas consideradas:** Reformatar `estrada-desktop.html` com Prettier (descartado para preservar o mockup visual original sem alterações cosméticas desnecessárias).
 
 ## Risks / Trade-offs
 

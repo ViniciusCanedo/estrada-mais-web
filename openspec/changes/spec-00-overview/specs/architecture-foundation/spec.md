@@ -12,7 +12,7 @@ O repositório SHALL manter rastreados pelo Git os diretórios `docs/`, `.agent/
 #### Scenario: Worktrees isoladas das ferramentas de verificação estática
 
 - **WHEN** os scripts de formatação, lint e detecção de segredos são executados na raiz do workspace
-- **THEN** `.prettierignore`, `.secretlintignore` e `eslint.config.mjs` ignoram exclusivamente `.worktrees` sem alterar nenhuma regra, threshold ou lista de código autoral
+- **THEN** `.prettierignore` (incluindo `.worktrees` e `estrada-desktop.html` para preservar o mockup original), `.secretlintignore` e `eslint.config.mjs` ignoram `.worktrees` sem alterar nenhuma regra, threshold ou lista de código autoral
 
 #### Scenario: Contexto do OpenSpec configurado para o Estrada+
 

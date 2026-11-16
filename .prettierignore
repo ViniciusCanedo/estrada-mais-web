@@ -8,3 +8,5 @@ public
 coverage
 playwright-report
 test-results
+.worktrees
+estrada-desktop.html
