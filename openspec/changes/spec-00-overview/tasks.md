@@ -8,13 +8,13 @@
 
 ## 2. Tipos e Constantes Transversais
 
-- [ ] 2.1 Criar `shared/types/domain.ts` (100% puro e isomórfico) exportando `EXPENSE_CATEGORIES`, `ExpenseCategory`, `PAYMENT_METHODS`, `PaymentMethod`, `BRAZILIAN_STATES`, `BrazilianState` e `DomainErrorCode`
-- [ ] 2.2 Exportar em `shared/types/domain.ts` os tipos genéricos de resposta da API `ApiItemResponse<T>`, `ApiListResponse<T, M>` e `ApiSuccessResponse`
+- [x] 2.1 Criar `shared/types/domain.ts` (100% puro e isomórfico) exportando `EXPENSE_CATEGORIES`, `ExpenseCategory`, `PAYMENT_METHODS`, `PaymentMethod`, `BRAZILIAN_STATES`, `BrazilianState` e `DomainErrorCode`
+- [x] 2.2 Exportar em `shared/types/domain.ts` os tipos genéricos de resposta da API `ApiItemResponse<T>`, `ApiListResponse<T, M>` e `ApiSuccessResponse`
 
 ## 3. Conversores Numéricos Puros
 
-- [ ] 3.1 Criar `shared/utils/units.ts` com funções puras tipadas explicitamente usando `Math.round` e normalização de `-0`: `toCents`/`fromCents`, `toDeciliters`/`fromDeciliters`, `toKg`/`fromKg` e `toMilliKmL`/`fromMilliKmL`
-- [ ] 3.2 Garantir aderência estrita às regras de complexidade e tamanho do ESLint e ausência de duplicação (`jscpd`)
+- [x] 3.1 Criar `shared/utils/units.ts` com funções puras tipadas explicitamente usando `Math.round` e normalização de `-0`: `toCents`/`fromCents`, `toDeciliters`/`fromDeciliters`, `toKg`/`fromKg` e `toMilliKmL`/`fromMilliKmL`
+- [x] 3.2 Garantir aderência estrita às regras de complexidade e tamanho do ESLint e ausência de duplicação (`jscpd`)
 
 ## 4. Erros de Domínio e Mapeamento HTTP
 
