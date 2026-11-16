@@ -8,6 +8,8 @@ import type {
 } from '#shared/schemas/auth.schema'
 import type { ApiItemResponse } from '#shared/types/domain'
 
+import { DASHBOARD_CACHE_KEY, DASHBOARD_DIRTY_STATE_KEY } from './useDashboard'
+
 export interface AuthSessionState {
   user: Ref<SessionUser | null>
   hasLoadedSession: Ref<boolean>
@@ -87,11 +89,19 @@ function resolveRequestFetcher(): typeof $fetch {
 }
 
 function invalidateTelemetryCache(): void {
+  if (typeof useState === 'function') {
+    useState<boolean>(DASHBOARD_DIRTY_STATE_KEY, () => false).value = false
+    useState<boolean>('estrada-expenses-dirty', () => false).value = false
+  }
   if (typeof clearNuxtData === 'function') {
     clearNuxtData('telemetry-sync-health')
     clearNuxtData('driver-settings')
     clearNuxtData('trips-list')
     clearNuxtData('expenses-ledger')
+    clearNuxtData(DASHBOARD_CACHE_KEY)
+    clearNuxtData('print-report-summary')
+    clearNuxtData('print-report-trips')
+    clearNuxtData('print-report-expenses')
   }
 }
 
@@ -131,6 +141,9 @@ async function performLogin(
   })
   setSessionUser(user, hasLoadedSession, response.data)
   invalidateTelemetryCache()
+  if (typeof refreshNuxtData === 'function') {
+    await refreshNuxtData(DASHBOARD_CACHE_KEY)
+  }
   return response.data
 }
 

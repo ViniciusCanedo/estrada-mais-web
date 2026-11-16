@@ -11,10 +11,10 @@
 
 ## 3. Front-end: Composables, Componentes do Dashboard, Exportação e Impressão
 
-- [ ] 3.1 Implementar `app/composables/useDashboard.ts` (`useDashboard` e `usePrintReport`) reativo a `selectedMonth` com chave `'dashboard-summary'` e garantir invalidação/refresh de `'dashboard-summary'` (e `'expenses-ledger'`) em `useAuthSession.ts`, `useDriverSettings.ts`, `useTrips.ts` e `useExpenses.ts`
-- [ ] 3.2 Criar helpers puros em `app/utils/dashboard.ts` e os componentes `HeroCostCard.vue`, `SecondaryStatsGrid.vue`, `CostTrendSvgChart.vue`, `RecentTripsTableCard.vue` e `RecentExpensesTableCard.vue` em `app/components/dashboard/` respeitando Night Highway, acessibilidade e limite `<= 250` linhas
-- [ ] 3.3 Atualizar `app/pages/index.vue` com o Painel Principal completo, estados de loading/erro/vazio com atalhos `+ Registrar Viagem` e `+ Lançar Despesa`, preservando `dashboard-max-cost-badge` e `dashboard-consumption-target` mesmo sem viagens
-- [ ] 3.4 Criar `app/components/settings/AccountingExportCard.vue` e integrá-lo em `app/pages/settings.vue`; criar `app/layouts/print.vue` e `app/pages/reports/print.vue` com formatação contábil A4 (`@media print` + `window.print()`)
+- [x] 3.1 Implementar `app/composables/useDashboard.ts` (`useDashboard` e `usePrintReport`) reativo a `selectedMonth` com chave `'dashboard-summary'` e garantir invalidação/refresh de `'dashboard-summary'` (e `'expenses-ledger'`) em `useAuthSession.ts`, `useDriverSettings.ts`, `useTrips.ts` e `useExpenses.ts`
+- [x] 3.2 Criar helpers puros em `app/utils/dashboard.ts` e os componentes `HeroCostCard.vue`, `SecondaryStatsGrid.vue`, `CostTrendSvgChart.vue`, `RecentTripsTableCard.vue` e `RecentExpensesTableCard.vue` em `app/components/dashboard/` respeitando Night Highway, acessibilidade e limite `<= 250` linhas
+- [x] 3.3 Atualizar `app/pages/index.vue` com o Painel Principal completo, estados de loading/erro/vazio com atalhos `+ Registrar Viagem` e `+ Lançar Despesa`, preservando `dashboard-max-cost-badge` e `dashboard-consumption-target` mesmo sem viagens
+- [x] 3.4 Criar `app/components/settings/AccountingExportCard.vue` e integrá-lo em `app/pages/settings.vue`; criar `app/layouts/print.vue` e `app/pages/reports/print.vue` com formatação contábil A4 (`@media print` + `window.print()`)
 
 ## 4. Testes Automatizados, Scripts de Carga e Quality Gate
 

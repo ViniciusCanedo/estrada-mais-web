@@ -11,6 +11,7 @@ import type { ApiItemResponse } from '#shared/types/domain'
 import { computeInitials, formatDriverSummary } from '#shared/utils/driver-profile'
 import { useApiFetch } from './useApiFetch'
 import { useAuthSession } from './useAuthSession'
+import { invalidateDashboardCache } from './useDashboard'
 
 const DRIVER_SETTINGS_CACHE_KEY = 'driver-settings'
 
@@ -66,6 +67,7 @@ export function useDriverSettings(): DriverSettingsState {
     if (syncSession) {
       setSessionUser(toSessionUser(response.data))
     }
+    await invalidateDashboardCache(true)
     return response.data
   }
 

@@ -12,6 +12,8 @@ import type {
 import type { ApiItemResponse, ApiSuccessResponse } from '#shared/types/domain'
 import { useApiFetch } from './useApiFetch'
 import { useCompetencePeriod } from './useCompetencePeriod'
+import { DASHBOARD_CACHE_KEY, DASHBOARD_DIRTY_STATE_KEY } from './useDashboard'
+import { EXPENSES_CACHE_KEY, EXPENSES_DIRTY_STATE_KEY } from './useExpenses'
 import { useGlobalModals } from './useGlobalModals'
 import { useTelemetrySync } from './useTelemetrySync'
 
@@ -55,9 +57,17 @@ export interface TripsPageState extends TripModalController {
 }
 
 async function refreshTripsAndTelemetry(refreshSync: () => Promise<void>): Promise<void> {
+  if (typeof useState === 'function') {
+    useState<boolean>(DASHBOARD_DIRTY_STATE_KEY, () => false).value = true
+    useState<boolean>(EXPENSES_DIRTY_STATE_KEY, () => false).value = true
+  }
   const tasks: Promise<unknown>[] = [refreshSync()]
   if (typeof refreshNuxtData === 'function') {
-    tasks.push(refreshNuxtData(TRIPS_LIST_CACHE_KEY))
+    tasks.push(
+      refreshNuxtData(TRIPS_LIST_CACHE_KEY),
+      refreshNuxtData(EXPENSES_CACHE_KEY),
+      refreshNuxtData(DASHBOARD_CACHE_KEY),
+    )
   }
   await Promise.all(tasks)
 }

@@ -62,11 +62,8 @@ export function apportionPercentages(
     .slice()
     .sort((a, b) => exact[b] - result[b] - (exact[a] - result[a]))
 
-  for (let step = 0; step < remainder; step += 1) {
-    const targetIndex = order[step]
-    if (targetIndex !== undefined) {
-      result[targetIndex] += 1
-    }
+  for (const targetIndex of order.slice(0, remainder)) {
+    result[targetIndex] += 1
   }
 
   return result

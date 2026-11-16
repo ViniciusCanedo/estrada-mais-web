@@ -5,57 +5,35 @@ export const DEFAULT_COMPETENCE_MONTH = '2026-09'
 const MONTHS_PER_YEAR = 12
 const TREND_MONTH_OFFSETS = [-5, -4, -3, -2, -1, 0] as const
 
-const MONTH_NAMES_PT_BR = [
-  'JANEIRO',
-  'FEVEREIRO',
-  'MARÇO',
-  'ABRIL',
-  'MAIO',
-  'JUNHO',
-  'JULHO',
-  'AGOSTO',
-  'SETEMBRO',
-  'OUTUBRO',
-  'NOVEMBRO',
-  'DEZEMBRO',
-] as const
+type MonthNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
-const MONTH_SHORT_PT_BR = [
-  'JAN',
-  'FEV',
-  'MAR',
-  'ABR',
-  'MAI',
-  'JUN',
-  'JUL',
-  'AGO',
-  'SET',
-  'OUT',
-  'NOV',
-  'DEZ',
-] as const
+interface MonthLabelsEntry {
+  readonly full: string
+  readonly short: string
+  readonly title: string
+}
 
-const MONTH_TITLE_PT_BR = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-] as const
+const MONTH_LABELS_PT_BR: Record<MonthNumber, MonthLabelsEntry> = {
+  1: { full: 'JANEIRO', short: 'JAN', title: 'Janeiro' },
+  2: { full: 'FEVEREIRO', short: 'FEV', title: 'Fevereiro' },
+  3: { full: 'MARÇO', short: 'MAR', title: 'Março' },
+  4: { full: 'ABRIL', short: 'ABR', title: 'Abril' },
+  5: { full: 'MAIO', short: 'MAI', title: 'Maio' },
+  6: { full: 'JUNHO', short: 'JUN', title: 'Junho' },
+  7: { full: 'JULHO', short: 'JUL', title: 'Julho' },
+  8: { full: 'AGOSTO', short: 'AGO', title: 'Agosto' },
+  9: { full: 'SETEMBRO', short: 'SET', title: 'Setembro' },
+  10: { full: 'OUTUBRO', short: 'OUT', title: 'Outubro' },
+  11: { full: 'NOVEMBRO', short: 'NOV', title: 'Novembro' },
+  12: { full: 'DEZEMBRO', short: 'DEZ', title: 'Dezembro' },
+}
 
-function parseCompetenceParts(month: string): { year: number; monthNumber: number } {
+function parseCompetenceParts(month: string): { year: number; monthNumber: MonthNumber } {
   const validated = competenceMonthSchema.parse(month)
   const [yearPart, monthPart] = validated.split('-')
   return {
     year: Number(yearPart),
-    monthNumber: Number(monthPart),
+    monthNumber: Number(monthPart) as MonthNumber,
   }
 }
 
@@ -77,8 +55,7 @@ export function shiftCompetenceMonth(month: string, deltaMonths: number): string
  */
 export function formatCompetenceMonthLabel(month: string): string {
   const { year, monthNumber } = parseCompetenceParts(month)
-  const monthLabel = MONTH_NAMES_PT_BR[monthNumber - 1] ?? ''
-  return `${monthLabel} ${year}`
+  return `${MONTH_LABELS_PT_BR[monthNumber].full} ${year}`
 }
 
 /**
@@ -86,7 +63,7 @@ export function formatCompetenceMonthLabel(month: string): string {
  */
 export function formatShortMonthLabel(month: string, isCurrent = false): string {
   const { monthNumber } = parseCompetenceParts(month)
-  const shortLabel = MONTH_SHORT_PT_BR[monthNumber - 1] ?? ''
+  const shortLabel = MONTH_LABELS_PT_BR[monthNumber].short
   return isCurrent ? `${shortLabel} (ATUAL)` : shortLabel
 }
 
@@ -95,7 +72,7 @@ export function formatShortMonthLabel(month: string, isCurrent = false): string 
  */
 export function formatMonthTitlePtBr(month: string): string {
   const { monthNumber } = parseCompetenceParts(month)
-  return MONTH_TITLE_PT_BR[monthNumber - 1] ?? ''
+  return MONTH_LABELS_PT_BR[monthNumber].title
 }
 
 /**

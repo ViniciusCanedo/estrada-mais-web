@@ -45,8 +45,7 @@ function formatCsvNumber(value: number, fractionDigits = 2): string {
 }
 
 function formatCsvDateBr(isoDate: string): string {
-  const [year, month, day] = isoDate.slice(0, 10).split('-')
-  return `${day ?? ''}/${month ?? ''}/${year ?? ''}`
+  return `${isoDate.slice(8, 10)}/${isoDate.slice(5, 7)}/${isoDate.slice(0, 4)}`
 }
 
 function joinCsvRow(cells: readonly string[]): string {
