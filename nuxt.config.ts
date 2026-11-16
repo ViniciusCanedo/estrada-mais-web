@@ -11,6 +11,18 @@ export default defineNuxtConfig({
     'nuxt-security',
   ],
   css: ['~/assets/css/main.css'],
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'pt-BR',
+        class: 'dark',
+      },
+      title: 'Estrada+ | Telemetria & Controle de Custos',
+    },
+  },
+  ui: {
+    colorMode: false,
+  },
   runtimeConfig: {
     appSecret: process.env.NUXT_APP_SECRET || '',
     databaseUrl: process.env.NUXT_DATABASE_URL || './.data/sqlite/estrada.db',
@@ -48,8 +60,13 @@ export default defineNuxtConfig({
   },
   fonts: {
     defaults: {
-      weights: [400, 500, 600, 700],
+      weights: [400, 500, 600, 700, 800],
     },
+    families: [
+      { name: 'Oswald', provider: 'google', weights: [500, 600, 700] },
+      { name: 'Inter', provider: 'google', weights: [400, 500, 600, 700] },
+      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600, 700, 800] },
+    ],
   },
   image: {
     quality: 80,

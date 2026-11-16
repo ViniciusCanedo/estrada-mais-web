@@ -1,7 +1,7 @@
 ## 1. Tokens Night Highway e Configuração Visual
 
-- [ ] 1.1 Configurar `app/assets/css/main.css` com `@import 'tailwindcss';`, `@import '@nuxt/ui';`, `@theme` (fontes `Oswald`, `Inter`, `JetBrains Mono` e tokens `asphalt-*`, `amber-*`, `expense-blue*`, `highway-*`), variáveis `--ui-*` em `:root, .dark` e utilitários `@utility road-divider`, `@utility road-divider-subtle` e `@utility radar-pulse`
-- [ ] 1.2 Configurar `app/app.config.ts` e `nuxt.config.ts` (fontes `@nuxt/fonts`, `ui: { colorMode: false }`, `htmlAttrs` com `lang="pt-BR"` e `class="dark"`) e estilizar `app/app.vue` e `app/error.vue` no tema Night Highway
+- [x] 1.1 Configurar `app/assets/css/main.css` com `@import 'tailwindcss';`, `@import '@nuxt/ui';`, `@theme` (fontes `Oswald`, `Inter`, `JetBrains Mono` e tokens `asphalt-*`, `amber-*`, `expense-blue*`, `highway-*`), variáveis `--ui-*` em `:root, .dark` e utilitários `@utility road-divider`, `@utility road-divider-subtle` e `@utility radar-pulse`
+- [x] 1.2 Configurar `app/app.config.ts` e `nuxt.config.ts` (fontes `@nuxt/fonts`, `ui: { colorMode: false }`, `htmlAttrs` com `lang="pt-BR"` e `class="dark"`) e estilizar `app/app.vue` e `app/error.vue` no tema Night Highway
 
 ## 2. Formatadores e Composables Reativos
 

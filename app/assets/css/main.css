@@ -1,2 +1,113 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@theme {
+  --font-display: 'Oswald', sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-asphalt-bg: #141416;
+  --color-asphalt-surface: #1d1d20;
+  --color-asphalt-surface-light: #252529;
+  --color-asphalt-border: #2d2d30;
+  --color-asphalt-border-light: #3f3f46;
+
+  --color-amber-default: #ffb400;
+  --color-amber-hover: #e6a200;
+  --color-amber-dark: #996c00;
+
+  --color-expense-blue: #7aa8ff;
+  --color-expense-blue-dark: #4173d6;
+
+  --color-highway-fg: #f3f4f6;
+  --color-highway-muted: #9ca3af;
+  --color-highway-muted-dark: #6b7280;
+  --color-highway-green: #22c55e;
+  --color-highway-red: #ef4444;
+}
+
+:root,
+.dark {
+  --ui-bg: #141416;
+  --ui-bg-muted: #252529;
+  --ui-bg-elevated: #1d1d20;
+  --ui-bg-accented: #252529;
+  --ui-bg-inverted: #f3f4f6;
+  --ui-border: #2d2d30;
+  --ui-border-muted: #2d2d30;
+  --ui-border-accented: #3f3f46;
+  --ui-border-inverted: #f3f4f6;
+  --ui-text-dimmed: #6b7280;
+  --ui-text-muted: #9ca3af;
+  --ui-text-toned: #d1d5db;
+  --ui-text: #f3f4f6;
+  --ui-text-highlighted: #ffffff;
+  --ui-text-inverted: #141416;
+  --ui-primary: #ffb400;
+  --ui-secondary: #7aa8ff;
+  --ui-success: #22c55e;
+  --ui-error: #ef4444;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-asphalt-bg);
+    color: var(--color-highway-fg);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #141416;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2d2d30;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+}
+
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@utility road-divider {
+  background-image: repeating-linear-gradient(
+    90deg,
+    #ffb400 0,
+    #ffb400 16px,
+    transparent 16px,
+    transparent 32px
+  );
+  height: 2px;
+  opacity: 0.65;
+}
+
+@utility road-divider-subtle {
+  border-bottom: 1px dashed #3f3f46;
+}
+
+@utility radar-pulse {
+  animation: radar-pulse 2.2s infinite ease-in-out;
+}
