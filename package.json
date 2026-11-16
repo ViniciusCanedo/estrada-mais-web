@@ -30,6 +30,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/database/migrate.ts",
     "db:seed": "tsx server/database/seed.ts",
+    "db:backup": "node scripts/backup-sqlite.mjs",
     "db:studio": "drizzle-kit studio",
     "check": "run-s typecheck lint format:check",
     "quality": "run-s format:check lint typecheck deps:check dup:check unused:check test:arch test:coverage build audit:check secrets:check test:e2e"

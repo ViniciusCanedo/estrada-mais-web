@@ -6,10 +6,10 @@
 
 ## 2. Backup Online Consistente do SQLite e Retenção de 14 Snapshots
 
-- [ ] 2.1 Implementar `server/utils/backup-retention.ts` com geração de nomes de snapshot (`pre-deploy-YYYYMMDD-HHMMSS.db` e `backup-YYYY-MM-DD.db`) e poda automática (`pruneOldBackups`) mantendo os 14 snapshots mais recentes.
-- [ ] 2.2 Implementar `backupSqliteDatabase` em `server/database/client.ts` utilizando a API nativa `.backup(destinationPath)` do `better-sqlite3` integrada à política de retenção de 14 arquivos.
-- [ ] 2.3 Criar `scripts/backup-sqlite.mjs`, adicionar script `"db:backup": "node scripts/backup-sqlite.mjs"` em `package.json` e documentar rotina de backup e rollback em produção no `README.md`.
-- [ ] 2.4 Criar `test/unit/backup-sqlite.spec.ts` validando backup online real em modo WAL (com dados íntegros de `drivers` e `trips` no snapshot gerado) e retenção exata dos 14 snapshots mais recentes.
+- [x] 2.1 Implementar `server/utils/backup-retention.ts` com geração de nomes de snapshot (`pre-deploy-YYYYMMDD-HHMMSS.db` e `backup-YYYY-MM-DD.db`) e poda automática (`pruneOldBackups`) mantendo os 14 snapshots mais recentes.
+- [x] 2.2 Implementar `backupSqliteDatabase` em `server/database/client.ts` utilizando a API nativa `.backup(destinationPath)` do `better-sqlite3` integrada à política de retenção de 14 arquivos.
+- [x] 2.3 Criar `scripts/backup-sqlite.mjs`, adicionar script `"db:backup": "node scripts/backup-sqlite.mjs"` em `package.json` e documentar rotina de backup e rollback em produção no `README.md`.
+- [x] 2.4 Criar `test/unit/backup-sqlite.spec.ts` validando backup online real em modo WAL (com dados íntegros de `drivers` e `trips` no snapshot gerado) e retenção exata dos 14 snapshots mais recentes.
 
 ## 3. Verificação Arquitetural de Deploy, CI/CD e Quality Gates
 

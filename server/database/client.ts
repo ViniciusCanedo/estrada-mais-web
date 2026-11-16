@@ -1,8 +1,14 @@
-import { mkdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { existsSync, mkdirSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import Database, { type Database as SqliteDatabase } from 'better-sqlite3'
 import { drizzle, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
+import {
+  DEFAULT_BACKUP_RETENTION_COUNT,
+  formatBackupFilename,
+  pruneOldBackups,
+  type BackupSnapshotPrefix,
+} from '../utils/backup-retention'
 import * as schema from './schema'
 
 export type AppDatabase = BetterSQLite3Database<typeof schema> & {
@@ -91,5 +97,59 @@ export async function runCliDatabaseAction(
     await action(cliDb)
   } finally {
     cliDb.$client.close()
+  }
+}
+
+export interface SqliteBackupOptions {
+  sourcePath?: string
+  backupDir?: string
+  prefix?: BackupSnapshotPrefix
+  maxSnapshots?: number
+  now?: Date
+}
+
+export interface SqliteBackupResult {
+  sourcePath: string
+  backupPath: string
+  filename: string
+  keptFiles: string[]
+  removedFiles: string[]
+}
+
+/**
+ * Executa backup online atômico via API nativa `.backup()` do better-sqlite3 e aplica retenção de snapshots.
+ */
+export async function backupSqliteDatabase(
+  options: SqliteBackupOptions = {},
+): Promise<SqliteBackupResult> {
+  const sourcePath = options.sourcePath ?? resolveConfiguredDatabasePath()
+  if (!existsSync(sourcePath)) {
+    throw new Error(`Arquivo de banco SQLite de origem não encontrado: ${sourcePath}`)
+  }
+
+  const backupDir = options.backupDir ?? join(dirname(sourcePath), 'backups')
+  mkdirSync(backupDir, { recursive: true })
+
+  const filename = formatBackupFilename(options.now ?? new Date(), options.prefix ?? 'pre-deploy')
+  const backupPath = join(backupDir, filename)
+
+  const sourceDb = new Database(sourcePath, { readonly: true, fileMustExist: true })
+  try {
+    await sourceDb.backup(backupPath)
+  } finally {
+    sourceDb.close()
+  }
+
+  const retention = pruneOldBackups(
+    backupDir,
+    options.maxSnapshots ?? DEFAULT_BACKUP_RETENTION_COUNT,
+  )
+
+  return {
+    sourcePath,
+    backupPath,
+    filename,
+    keptFiles: retention.keptFiles,
+    removedFiles: retention.removedFiles,
   }
 }
