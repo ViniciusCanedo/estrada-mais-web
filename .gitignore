@@ -9,31 +9,7 @@ dist
 # Node dependencies
 node_modules
 
-# Logs
-logs
-*.log
-
-# Misc
-.DS_Store
-.fleet
-.idea
-
-# Local env files
-.env
-.env.*
-!.env.example
-
-# Testing
-playwright-report
-test-results
-coverage
-
-
-# Git worktrees
-.worktrees
-.worktrees/**
-
-# Local SQLite database artifacts
+# Banco de dados SQLite e arquivos de paginação/WAL
 *.db
 *.db-wal
 *.db-shm
@@ -41,3 +17,29 @@ coverage
 *.sqlite3
 *.sqlite-wal
 *.sqlite-shm
+
+# Logs
+logs
+*.log
+
+# Sistema operacional e IDEs
+.DS_Store
+.fleet
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Arquivos de ambiente locais (Segurança §8)
+.env
+.env.*
+!.env.example
+
+# Relatórios de testes e cobertura
+playwright-report
+test-results
+coverage
+
+# Git worktrees
+.worktrees
+.worktrees/**
