@@ -1,4 +1,5 @@
 import { runMigrations } from '../database/migrate'
+import { logger } from '../utils/logger'
 
 /**
  * Executa migrations pendentes automaticamente durante o boot do servidor Nitro.
@@ -7,8 +8,10 @@ export default defineNitroPlugin(() => {
   try {
     runMigrations()
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error)
-    process.stderr.write(`Falha crítica ao aplicar migrations SQLite no boot: ${message}\n`)
+    logger.error('Falha crítica ao aplicar migrations SQLite no boot', {
+      component: 'database-migrate',
+      error,
+    })
     throw error
   }
 })

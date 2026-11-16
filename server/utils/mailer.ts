@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { logger } from './logger'
 
 export interface SmtpConfig {
   host: string
@@ -56,9 +57,11 @@ export async function sendPasswordResetEmail(
   const smtp = resolveSmtpConfig(smtpOverride)
 
   if (!smtp.host.trim()) {
-    process.stdout.write(
-      '[mailer] SMTP não configurado; envio de recuperação de senha executado em modo simulado.\n',
-    )
+    logger.info('SMTP não configurado; envio de recuperação de senha executado em modo simulado.', {
+      component: 'mailer',
+      email: to,
+      resetUrl,
+    })
     return
   }
 

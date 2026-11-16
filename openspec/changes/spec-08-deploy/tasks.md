@@ -1,8 +1,8 @@
 ## 1. Observabilidade e Logs Estruturados
 
-- [ ] 1.1 Implementar `server/utils/logger.ts` com emissão JSON em `process.stdout.write` (`info`, `warn`) e `process.stderr.write` (`error`), redaction recursiva de credenciais (`password`, `currentPassword`, `newPassword`, `passwordHash`, `token`, `tokenHash`, `cookie`, `authorization`, `secret`) e mascaramento de e-mails (`[REDACTED_EMAIL]`).
-- [ ] 1.2 Integrar `logger` estruturado em `server/plugins/01.database-migrate.ts` e `server/utils/mailer.ts` preservando compatibilidade com os testes existentes.
-- [ ] 1.3 Criar `test/unit/logger.spec.ts` cobrindo níveis `info`/`warn`/`error`, saída em `stdout`/`stderr`, redaction de campos sensíveis em objetos aninhados e mascaramento de endereços de e-mail em mensagens e metadados.
+- [x] 1.1 Implementar `server/utils/logger.ts` com emissão JSON em `process.stdout.write` (`info`, `warn`) e `process.stderr.write` (`error`), redaction recursiva de credenciais (`password`, `currentPassword`, `newPassword`, `passwordHash`, `token`, `tokenHash`, `cookie`, `authorization`, `secret`) e mascaramento de e-mails (`[REDACTED_EMAIL]`).
+- [x] 1.2 Integrar `logger` estruturado em `server/plugins/01.database-migrate.ts` e `server/utils/mailer.ts` preservando compatibilidade com os testes existentes.
+- [x] 1.3 Criar `test/unit/logger.spec.ts` cobrindo níveis `info`/`warn`/`error`, saída em `stdout`/`stderr`, redaction de campos sensíveis em objetos aninhados e mascaramento de endereços de e-mail em mensagens e metadados.
 
 ## 2. Backup Online Consistente do SQLite e Retenção de 14 Snapshots
 
