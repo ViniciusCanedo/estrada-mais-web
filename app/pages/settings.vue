@@ -5,10 +5,12 @@ import type {
   UpdateDriverProfileInput,
   UpdateTelemetryTargetsInput,
 } from '#shared/schemas/settings.schema'
+import AccountingExportCard from '~/components/settings/AccountingExportCard.vue'
 import DriverProfileForm from '~/components/settings/DriverProfileForm.vue'
 import SecurityCredentialsForm from '~/components/settings/SecurityCredentialsForm.vue'
 import TelemetryTargetsCard from '~/components/settings/TelemetryTargetsCard.vue'
 import { extractAuthErrorMessage } from '~/composables/useAuthSession'
+import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
 import { useDriverSettings } from '~/composables/useDriverSettings'
 
 useHead({
@@ -16,6 +18,7 @@ useHead({
 })
 
 const toast = useToast()
+const { selectedMonth, formattedMonthLabel } = useCompetencePeriod()
 const { settings, pending, error, refresh, saveProfile, saveCredentials, saveTargets } =
   useDriverSettings()
 
@@ -157,6 +160,8 @@ async function handleSaveTargets(payload: UpdateTelemetryTargetsInput): Promise<
           :error-message="targetsError"
           @submit="handleSaveTargets"
         />
+
+        <AccountingExportCard :month="selectedMonth" :month-label="formattedMonthLabel" />
       </div>
     </div>
   </div>

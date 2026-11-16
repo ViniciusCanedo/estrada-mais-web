@@ -4,6 +4,7 @@ import {
   getCurrentInstance,
   onServerPrefetch,
   ref,
+  watch,
   type ComputedRef,
   type Ref,
 } from 'vue'
@@ -19,10 +20,16 @@ import { EMPTY_EXPENSE_SUMMARY } from '../utils/expenses'
 import { useApiFetch } from './useApiFetch'
 import { extractAuthErrorMessage } from './useAuthSession'
 import { useCompetencePeriod } from './useCompetencePeriod'
+import {
+  consumeDirtyCacheFlag,
+  DASHBOARD_CACHE_KEY,
+  DASHBOARD_DIRTY_STATE_KEY,
+} from './useDashboard'
 import { useGlobalModals } from './useGlobalModals'
 import { useTelemetrySync } from './useTelemetrySync'
 
 export const EXPENSES_CACHE_KEY = 'expenses-ledger'
+export const EXPENSES_DIRTY_STATE_KEY = 'estrada-expenses-dirty'
 
 export interface UseExpensesOptions {
   autoFetch?: boolean
@@ -67,10 +74,14 @@ function useExpensesSharedRefs(): ExpensesSharedRefs {
 }
 
 async function refreshLedgerAndSidebar(refreshSync: () => Promise<void>): Promise<void> {
-  if (typeof refreshNuxtData === 'function') {
-    await refreshNuxtData(EXPENSES_CACHE_KEY)
+  if (typeof useState === 'function') {
+    useState<boolean>(DASHBOARD_DIRTY_STATE_KEY, () => false).value = true
   }
-  await refreshSync()
+  const tasks: Promise<unknown>[] = [refreshSync()]
+  if (typeof refreshNuxtData === 'function') {
+    tasks.push(refreshNuxtData(EXPENSES_CACHE_KEY), refreshNuxtData(DASHBOARD_CACHE_KEY))
+  }
+  await Promise.all(tasks)
 }
 
 async function runExpenseMutation<T>(options: {
@@ -170,6 +181,8 @@ function useExpensesFetch(
     }
   }
 
+  const expensesDirty = consumeDirtyCacheFlag(EXPENSES_DIRTY_STATE_KEY, EXPENSES_CACHE_KEY)
+
   const asyncData = useApiFetch<ExpenseListResponse>('/expenses', {
     key: EXPENSES_CACHE_KEY,
     query: computed(() => ({
@@ -183,6 +196,10 @@ function useExpensesFetch(
       await asyncData
     })
   }
+
+  watch(asyncData.data, () => {
+    expensesDirty.value = false
+  })
 
   return {
     expenses: computed(() => asyncData.data.value?.data ?? []),

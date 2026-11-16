@@ -1,220 +1,139 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import type { HealthStatusPayload } from '#shared/schemas/health.schema'
-import { toCents, toMilliKmL } from '#shared/utils/units'
+import { computed } from 'vue'
+import CostTrendSvgChart from '~/components/dashboard/CostTrendSvgChart.vue'
+import HeroCostCard from '~/components/dashboard/HeroCostCard.vue'
+import RecentExpensesTableCard from '~/components/dashboard/RecentExpensesTableCard.vue'
+import RecentTripsTableCard from '~/components/dashboard/RecentTripsTableCard.vue'
+import SecondaryStatsGrid from '~/components/dashboard/SecondaryStatsGrid.vue'
 import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
-import { useDriverSettings } from '~/composables/useDriverSettings'
-import { formatCurrencyFromCents, formatKmPerLiterFromMilli } from '~/utils/formatters'
+import { useDashboard } from '~/composables/useDashboard'
+import { useGlobalModals } from '~/composables/useGlobalModals'
 
-const { formattedMonthLabel } = useCompetencePeriod()
-const {
-  settings: driverSettings,
-  pending: settingsPending,
-  error: settingsError,
-} = useDriverSettings()
-
-const {
-  data: health,
-  status: healthStatus,
-  error: healthError,
-  refresh: refreshHealth,
-} = await useApiFetch<HealthStatusPayload>('/health', {
-  key: 'health-status',
+useHead({
+  title: 'Painel Principal | Estrada+',
 })
 
-const manualCheckLoading = ref(false)
-const manualCheckResult = ref<HealthStatusPayload | null>(null)
-const manualCheckError = ref<string | null>(null)
+const { formattedMonthLabel } = useCompetencePeriod()
+const { openTripModal, openExpenseModal } = useGlobalModals()
+const { dashboard, pending, error, refresh } = useDashboard()
 
-const maxCostBadgeLabel = computed(() =>
-  driverSettings.value
-    ? `META: ≤ ${formatCurrencyFromCents(toCents(driverSettings.value.maxCostPerKmReais))}`
-    : null,
-)
-const consumptionTargetLabel = computed(() =>
-  driverSettings.value
-    ? `Meta ${formatKmPerLiterFromMilli(toMilliKmL(driverSettings.value.targetConsumptionKmL))}`
-    : null,
-)
-
-async function handleManualFetch(): Promise<void> {
-  manualCheckLoading.value = true
-  manualCheckError.value = null
-  try {
-    manualCheckResult.value = await $fetch<HealthStatusPayload>('/api/health')
-  } catch {
-    manualCheckError.value = 'Não foi possível verificar a saúde do servidor.'
-  } finally {
-    manualCheckLoading.value = false
+const isEmptyMonth = computed(() => {
+  const current = dashboard.value
+  if (!current) {
+    return false
   }
-}
+  return (
+    current.stats.kmDriven.totalKm === 0 &&
+    current.recentTrips.length === 0 &&
+    current.recentExpenses.length === 0
+  )
+})
 </script>
 
 <template>
   <div data-testid="screen-dashboard" class="space-y-6">
-    <div class="border-b border-asphalt-border pb-4">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <span class="font-mono text-xs tracking-widest text-amber-default uppercase">
-            TELEMETRIA &amp; CONTROLE OPERACIONAL • {{ formattedMonthLabel }}
-          </span>
-          <h1 class="mt-1 font-display text-3xl font-bold text-white uppercase">
-            Estrada+ Telemetria
-          </h1>
-          <p class="mt-1 text-sm text-highway-muted">
-            Shell Night Highway, Drizzle ORM + SQLite (WAL) e monitoramento em tempo real ativos.
-          </p>
-        </div>
-
-        <UBadge
-          :color="health?.status === 'ok' ? 'success' : 'neutral'"
-          variant="subtle"
-          class="font-mono uppercase"
-        >
-          {{ healthStatus }}
-        </UBadge>
-      </div>
-    </div>
+    <h1 class="sr-only">Painel Principal — {{ formattedMonthLabel }}</h1>
 
     <div
-      v-if="driverSettings"
-      data-testid="dashboard-targets-summary"
-      class="grid grid-cols-1 gap-4 md:grid-cols-2"
+      v-if="pending && !dashboard"
+      data-testid="dashboard-loading-state"
+      class="rounded-lg border border-asphalt-border bg-asphalt-surface p-6 font-mono text-sm text-highway-muted"
     >
-      <div class="rounded-lg border-2 border-amber-default/70 bg-asphalt-surface p-5">
-        <div class="flex items-center justify-between">
-          <span class="font-mono text-[11px] font-semibold tracking-widest text-amber-default">
-            TETO OPERACIONAL
-          </span>
-          <span
-            data-testid="dashboard-max-cost-badge"
-            class="rounded-sm border border-asphalt-border bg-asphalt-bg px-2 py-0.5 font-mono text-[10px] text-highway-muted"
-          >
-            {{ maxCostBadgeLabel }}
-          </span>
-        </div>
-        <p class="mt-2 font-mono text-2xl font-bold text-white">
-          {{ formatCurrencyFromCents(toCents(driverSettings.maxCostPerKmReais)) }}
-          <span class="text-sm font-normal text-highway-muted">/ km</span>
-        </p>
-      </div>
-
-      <div class="rounded-lg border border-asphalt-border bg-asphalt-surface p-5">
-        <div class="flex items-center justify-between">
-          <span class="font-mono text-[11px] font-semibold tracking-widest text-highway-muted">
-            MÉDIA DIESEL
-          </span>
-          <NuxtLink
-            to="/settings"
-            class="font-mono text-[11px] text-amber-default underline-offset-4 hover:underline"
-          >
-            Calibrar metas
-          </NuxtLink>
-        </div>
-        <p
-          data-testid="dashboard-consumption-target"
-          class="mt-2 font-mono text-2xl font-bold text-amber-default"
-        >
-          {{ consumptionTargetLabel }}
-        </p>
-      </div>
-    </div>
-
-    <div
-      v-else-if="settingsPending"
-      class="rounded-lg border border-asphalt-border bg-asphalt-surface p-4 font-mono text-xs text-highway-muted"
-    >
-      Carregando metas operacionais...
+      Carregando telemetria e consolidação mensal de {{ formattedMonthLabel }}...
     </div>
 
     <UAlert
-      v-else-if="settingsError"
-      color="warning"
+      v-else-if="error && !dashboard"
+      color="error"
       variant="subtle"
-      title="Metas de telemetria indisponíveis no momento."
-    />
+      data-testid="dashboard-error-state"
+      title="Não foi possível carregar o Painel Principal"
+      description="Verifique sua sessão ou tente atualizar os indicadores do mês."
+    >
+      <template #actions>
+        <UButton
+          label="Tentar novamente"
+          color="neutral"
+          variant="outline"
+          size="xs"
+          data-testid="dashboard-retry-btn"
+          @click="refresh()"
+        />
+      </template>
+    </UAlert>
 
-    <div class="rounded-lg border border-asphalt-border bg-asphalt-surface p-6">
-      <div class="mb-4 flex items-center justify-between">
-        <div
-          class="flex items-center gap-2 font-display text-lg tracking-wide text-white uppercase"
-        >
-          <UIcon name="i-lucide-activity" class="size-5 text-amber-default" />
-          <span>Saúde da Plataforma &amp; SQLite</span>
-        </div>
-        <span class="font-mono text-xs text-highway-muted">/api/health</span>
+    <div
+      v-else-if="!dashboard"
+      data-testid="dashboard-unavailable-state"
+      class="rounded-lg border border-asphalt-border bg-asphalt-surface p-6 font-mono text-sm text-highway-muted"
+    >
+      Nenhum dado operacional encontrado para {{ formattedMonthLabel }}.
+    </div>
+
+    <template v-else>
+      <div class="grid grid-cols-12 items-stretch gap-6">
+        <HeroCostCard :hero="dashboard.hero" />
+        <SecondaryStatsGrid
+          :stats="dashboard.stats"
+          :previous-month-label="dashboard.hero.previousMonthLabel"
+        />
       </div>
 
-      <div class="space-y-4">
-        <UAlert
-          v-if="healthError || manualCheckError"
-          color="error"
-          variant="subtle"
-          title="Falha ao consultar /api/health"
-          :description="manualCheckError ?? 'O serviço ou banco de dados está indisponível.'"
-        />
-
-        <div
-          v-else-if="healthStatus === 'pending'"
-          class="rounded-sm border border-asphalt-border bg-asphalt-bg p-4 font-mono text-sm text-highway-muted"
-        >
-          Verificando conectividade com o SQLite...
-        </div>
-
-        <div
-          v-else-if="!health"
-          class="rounded-sm border border-asphalt-border bg-asphalt-bg p-4 font-mono text-sm text-highway-muted"
-        >
-          Nenhum dado de telemetria disponível no momento.
-        </div>
-
-        <div
-          v-else
-          class="space-y-2 rounded-sm border border-asphalt-border bg-asphalt-bg p-4 text-sm"
-        >
-          <div class="flex items-center justify-between">
-            <span class="text-highway-muted">Status da API:</span>
-            <span data-testid="health-status-value" class="font-mono font-semibold text-white">
-              {{ health.status }}
-            </span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-highway-muted">Banco SQLite:</span>
-            <span data-testid="health-database-value" class="font-mono text-xs text-highway-green">
-              {{ health.database }}
-            </span>
-          </div>
-          <div v-if="manualCheckResult" class="flex items-center justify-between">
-            <span class="text-highway-muted">Último $fetch manual:</span>
-            <span
-              data-testid="manual-health-timestamp"
-              class="font-mono text-xs text-amber-default"
-            >
-              {{ manualCheckResult.timestamp }}
-            </span>
-          </div>
+      <div
+        v-if="isEmptyMonth"
+        data-testid="dashboard-empty-state"
+        class="flex flex-col items-start justify-between gap-4 rounded-lg border border-asphalt-border bg-asphalt-surface p-6 sm:flex-row sm:items-center"
+      >
+        <div class="space-y-1">
+          <h2 class="font-display text-lg font-semibold text-white uppercase">
+            Sem movimentação em {{ dashboard.monthLabel }}
+          </h2>
+          <p class="text-xs text-highway-muted">
+            Registre sua primeira viagem ou lance uma despesa operacional para iniciar a
+            consolidação desta competência.
+          </p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
           <UButton
-            data-testid="refresh-health-btn"
-            icon="i-lucide-refresh-cw"
-            label="Atualizar Status"
-            color="neutral"
-            variant="outline"
-            @click="refreshHealth()"
-          />
-          <UButton
-            data-testid="manual-fetch-btn"
-            icon="i-lucide-zap"
-            label="Verificar via $fetch"
+            label="+ Lançar Despesa"
+            icon="i-lucide-plus"
             color="secondary"
             variant="outline"
-            :loading="manualCheckLoading"
-            @click="handleManualFetch()"
+            size="sm"
+            data-testid="dashboard-empty-expense-btn"
+            @click="openExpenseModal()"
+          />
+          <UButton
+            label="+ Registrar Viagem"
+            icon="i-lucide-plus"
+            color="primary"
+            size="sm"
+            data-testid="dashboard-empty-trip-btn"
+            @click="openTripModal()"
           />
         </div>
       </div>
-    </div>
+
+      <CostTrendSvgChart
+        :points="dashboard.trendSixMonths"
+        :target-max-cost-per-km-reais="dashboard.hero.targetMaxCostPerKmReais"
+      />
+
+      <div
+        v-if="!isEmptyMonth"
+        data-testid="dashboard-tables"
+        class="grid grid-cols-1 gap-6 lg:grid-cols-2"
+      >
+        <RecentTripsTableCard
+          :trips="dashboard.recentTrips"
+          :total-count="dashboard.recentTripsCount"
+        />
+        <RecentExpensesTableCard
+          :expenses="dashboard.recentExpenses"
+          :total-count="dashboard.recentExpensesCount"
+        />
+      </div>
+    </template>
   </div>
 </template>
