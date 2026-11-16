@@ -20,4 +20,4 @@
 - [x] 4.1 Atualizar `test/unit/driver.repository.spec.ts` e criar `test/unit/settings.service.spec.ts` cobrindo precisão inteira (`2.35 -> 2350`, `5.10 -> 510`), limites de schema, colisão `409`, senha atual `401`/sucesso e os 4 handlers `server/api/settings/*.ts` com cobertura `>= 90%`
 - [x] 4.2 Criar `test/nuxt/settings.spec.ts` e atualizar `test/nuxt/index.spec.ts` e `test/nuxt/layout.spec.ts` cobrindo renderização, sliders, validação `UForm`, sincronização da Sidebar e estados de erro/loading
 - [x] 4.3 Criar `test/e2e/settings.spec.ts` usando motorista isolado (`createTestDriver`) para validar alteração cadastral refletindo na Sidebar, troca de senha com novo login e alteração de metas refletindo no badge `META: ≤ R$ ...` em `/`
-- [ ] 4.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
+- [x] 4.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
