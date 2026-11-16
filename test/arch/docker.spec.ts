@@ -67,4 +67,38 @@ describe('Infraestrutura Docker de Produção', () => {
     expect(content).toContain('http://localhost:3000/api/health')
     expect(content).toContain('restart: unless-stopped')
   })
+
+  it('deve configurar workflow .github/workflows/quality.yml com jobs quality e docker-verify alinhados aos gates G1-G13', () => {
+    const workflowPath = resolve(ROOT_DIR, '.github/workflows/quality.yml')
+
+    expect(existsSync(workflowPath)).toBe(true)
+
+    const content = readProjectFile('.github/workflows/quality.yml')
+    expect(content).toContain('quality:')
+    expect(content).toContain('docker-verify:')
+    expect(content).toContain('needs: quality')
+    expect(content).toContain('npm ci')
+    expect(content).toContain('npm run db:migrate')
+    expect(content).toContain('npm run db:seed')
+    expect(content).toContain('npm run quality')
+    expect(content).toContain('docker build -f docker/prod/Dockerfile')
+    expect(content).toContain('http://localhost:3000/api/health')
+  })
+
+  it('deve disponibilizar utilitário scripts/backup-sqlite.mjs com .backup() nativo, retenção de 14 snapshots e comando db:backup', () => {
+    const backupScriptPath = resolve(ROOT_DIR, 'scripts/backup-sqlite.mjs')
+
+    expect(existsSync(backupScriptPath)).toBe(true)
+
+    const scriptContent = readProjectFile('scripts/backup-sqlite.mjs')
+    expect(scriptContent).toContain('better-sqlite3')
+    expect(scriptContent).toContain('.backup(')
+    expect(scriptContent).toContain('MAX_SNAPSHOTS = 14')
+    expect(scriptContent).toContain('pre-deploy-')
+
+    const pkg = JSON.parse(readProjectFile('package.json')) as {
+      scripts?: Record<string, string>
+    }
+    expect(pkg.scripts?.['db:backup']).toBe('node scripts/backup-sqlite.mjs')
+  })
 })
