@@ -109,7 +109,7 @@ export class ReportRepository implements IReportRepository {
 
   public getMonthlyAggregates(driverId: number, month: string): MonthlyRawAggregates {
     const db = this.resolveDb()
-    const tripSummary = db
+    const tripRows = db
       .select({
         totalDistanceKm: sql<number>`coalesce(sum(${trips.distanceKm}), 0)`,
         totalTripFuelDeciliters: sql<number>`coalesce(sum(${trips.fuelLitersDeciliters}), 0)`,
@@ -118,16 +118,27 @@ export class ReportRepository implements IReportRepository {
       })
       .from(trips)
       .where(and(eq(trips.driverId, driverId), like(trips.tripDate, `${month}-%`)))
-      .get()
+      .all()
+
+    let totalDistanceKm = 0
+    let totalTripFuelDeciliters = 0
+    let totalGrossFreightCents = 0
+    let tripsCount = 0
+    for (const row of tripRows) {
+      totalDistanceKm += Number(row.totalDistanceKm)
+      totalTripFuelDeciliters += Number(row.totalTripFuelDeciliters)
+      totalGrossFreightCents += Number(row.totalGrossFreightCents)
+      tripsCount += Number(row.tripsCount)
+    }
 
     const expenseAgg = queryExpenseAggregates(db, driverId, month)
 
     return {
       month,
-      totalDistanceKm: Number(tripSummary?.totalDistanceKm ?? 0),
-      totalTripFuelDeciliters: Number(tripSummary?.totalTripFuelDeciliters ?? 0),
-      totalGrossFreightCents: Number(tripSummary?.totalGrossFreightCents ?? 0),
-      tripsCount: Number(tripSummary?.tripsCount ?? 0),
+      totalDistanceKm,
+      totalTripFuelDeciliters,
+      totalGrossFreightCents,
+      tripsCount,
       ...expenseAgg,
       lastTireShopDescription: findLastExpenseDescription(db, driverId, month, 'borracharia'),
       lastMaintenanceDescription: findLastExpenseDescription(db, driverId, month, 'manutencao'),
