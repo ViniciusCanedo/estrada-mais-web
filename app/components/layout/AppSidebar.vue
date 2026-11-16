@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import TelemetrySyncBadge from './TelemetrySyncBadge.vue'
+import AppRoadDivider from '../ui/AppRoadDivider.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -129,7 +131,7 @@ function isActiveRoute(path: string): boolean {
             </p>
           </div>
         </div>
-        <UiAppRoadDivider class="mt-4" />
+        <AppRoadDivider class="mt-4" />
       </div>
 
       <nav aria-label="Menu principal" class="space-y-1 p-3" data-testid="sidebar-menu">
@@ -176,7 +178,7 @@ function isActiveRoute(path: string): boolean {
     </div>
 
     <div class="space-y-3 border-t border-asphalt-border bg-asphalt-bg/40 p-4">
-      <LayoutTelemetrySyncBadge
+      <TelemetrySyncBadge
         :is-online="isOnline"
         :is-healthy="isHealthy"
         :last-sync-label="lastSyncLabel"

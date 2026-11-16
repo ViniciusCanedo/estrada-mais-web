@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue'
+import AppUnitInput from '../ui/AppUnitInput.vue'
 
 const odometerStart = ref('784.320')
 const fuelCost = ref('3.465,00')
@@ -22,16 +23,16 @@ const operationDateId = useId()
     <div
       class="grid grid-cols-1 gap-6 rounded-lg border border-asphalt-border bg-asphalt-surface p-6 md:grid-cols-3"
     >
-      <UiAppUnitInput
+      <AppUnitInput
         id="ds-odometer-normal"
         v-model="odometerStart"
         label="Odômetro Inicial (Com Unidade)"
         suffix="km"
       >
         <template #hint>Estado Normal / Padrão</template>
-      </UiAppUnitInput>
+      </AppUnitInput>
 
-      <UiAppUnitInput
+      <AppUnitInput
         id="ds-fuel-focused"
         v-model="fuelCost"
         label="Custo do Abastecimento (Focado)"
@@ -39,9 +40,9 @@ const operationDateId = useId()
         active
       >
         <template #hint>Estado :focus / Glow de Alta Atenção</template>
-      </UiAppUnitInput>
+      </AppUnitInput>
 
-      <UiAppUnitInput
+      <AppUnitInput
         id="ds-odometer-error"
         v-model="odometerError"
         label="KM Final Menor que Inicial (Erro)"
@@ -63,7 +64,7 @@ const operationDateId = useId()
         </select>
       </label>
 
-      <UiAppUnitInput
+      <AppUnitInput
         id="ds-average-disabled"
         v-model="calculatedAverage"
         label="Cálculo Automático (Desabilitado)"
@@ -71,7 +72,7 @@ const operationDateId = useId()
         disabled
       >
         <template #hint>Estado Disabled</template>
-      </UiAppUnitInput>
+      </AppUnitInput>
 
       <label :for="operationDateId" class="block space-y-1.5">
         <span class="block font-mono text-xs text-highway-muted">Data da Operação (Date)</span>

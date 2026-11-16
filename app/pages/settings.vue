@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
+import AppModulePlaceholder from '../components/ui/AppModulePlaceholder.vue'
+import { useCompetencePeriod } from '../composables/useCompetencePeriod'
 
 const { formattedMonthLabel } = useCompetencePeriod()
 </script>
 
 <template>
   <div data-testid="screen-settings">
-    <UiAppModulePlaceholder
+    <AppModulePlaceholder
       eyebrow="CONFIGURAÇÕES DO SISTEMA"
       title="Perfil do Motorista &amp; Parâmetros"
       description="Cadastro do motorista autônomo, credenciais de acesso e metas operacionais serão implementados na spec 04-configuracoes-e-perfil."
@@ -21,6 +22,6 @@ const { formattedMonthLabel } = useCompetencePeriod()
           variant="outline"
         />
       </template>
-    </UiAppModulePlaceholder>
+    </AppModulePlaceholder>
   </div>
 </template>
