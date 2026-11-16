@@ -25,4 +25,4 @@
 
 - [x] 5.1 Criar `test/unit/units.spec.ts` em `pt-BR` cobrindo todas as conversões de `shared/utils/units.ts` (sucesso, imprecisões IEEE 754 como `19.99`, `0`, `-0`, negativos) e verificando as constantes de `shared/types/domain.ts`
 - [x] 5.2 Criar `test/unit/domain-error.spec.ts` em `pt-BR` cobrindo `DomainError` e `handleServiceError` para todos os 7 `DomainErrorCode`, preservação de `H3Error` e encapsulamento seguro de `Error` genérico e valores não-Error em HTTP `500`
-- [ ] 5.3 Executar `npm run quality` garantindo exit code `0` e cobertura ≥ 90% em `shared/**` e `server/**`
+- [x] 5.3 Executar `npm run quality` garantindo exit code `0` e cobertura ≥ 90% em `shared/**` e `server/**`
