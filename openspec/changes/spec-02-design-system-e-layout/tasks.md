@@ -22,7 +22,7 @@
 
 ## 5. Testes Automatizados e Validação
 
-- [ ] 5.1 Criar `test/unit/formatters.spec.ts` cobrindo formatadores `pt-BR` e `useCompetencePeriod` (incluindo virada de ano `2026-01` → `2025-12` e `2026-12` → `2027-01`) e verificar cobertura de `test/unit/health.service.spec.ts`
-- [ ] 5.2 Criar `test/nuxt/unit-input.spec.ts`, `test/nuxt/layout.spec.ts` e atualizar `test/nuxt/index.spec.ts` cobrindo `AppUnitInput`, `AppSidebar`, `AppTopBar`, `TelemetrySyncBadge`, `design-system.vue` e visibilidade em `dev` vs produção
-- [ ] 5.3 Criar `test/e2e/navigation.spec.ts` e validar `test/e2e/home.spec.ts` cobrindo navegação entre rotas, breadcrumb dinâmico, seletor mensal, modais globais (`Escape`) e redirecionamento de `/design-system` em produção
+- [x] 5.1 Criar `test/unit/formatters.spec.ts` cobrindo formatadores `pt-BR` e `useCompetencePeriod` (incluindo virada de ano `2026-01` → `2025-12` e `2026-12` → `2027-01`) e verificar cobertura de `test/unit/health.service.spec.ts`
+- [x] 5.2 Criar `test/nuxt/unit-input.spec.ts`, `test/nuxt/layout.spec.ts` e atualizar `test/nuxt/index.spec.ts` cobrindo `AppUnitInput`, `AppSidebar`, `AppTopBar`, `TelemetrySyncBadge`, `design-system.vue` e visibilidade em `dev` vs produção
+- [x] 5.3 Criar `test/e2e/navigation.spec.ts` e validar `test/e2e/home.spec.ts` cobrindo navegação entre rotas, breadcrumb dinâmico, seletor mensal, modais globais (`Escape`) e redirecionamento de `/design-system` em produção
 - [ ] 5.4 Executar `npm run format` (se necessário) e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
