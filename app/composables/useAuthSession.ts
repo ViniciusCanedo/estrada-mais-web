@@ -17,6 +17,7 @@ export interface AuthSessionState {
   logout: () => Promise<void>
   requestPasswordReset: (payload: ForgotPasswordInput) => Promise<string>
   confirmPasswordReset: (payload: ResetPasswordInput) => Promise<string>
+  setSessionUser: (nextUser: SessionUser | null) => void
   clearSessionState: () => void
 }
 
@@ -88,6 +89,7 @@ function resolveRequestFetcher(): typeof $fetch {
 function invalidateTelemetryCache(): void {
   if (typeof clearNuxtData === 'function') {
     clearNuxtData('telemetry-sync-health')
+    clearNuxtData('driver-settings')
   }
 }
 
@@ -116,6 +118,32 @@ function setSessionUser(
   hasLoadedSession.value = true
 }
 
+async function performLogin(
+  user: Ref<SessionUser | null>,
+  hasLoadedSession: Ref<boolean>,
+  payload: LoginInput,
+): Promise<SessionUser> {
+  const response = await $fetch<ApiItemResponse<SessionUser>>('/api/auth/login', {
+    method: 'POST',
+    body: payload,
+  })
+  setSessionUser(user, hasLoadedSession, response.data)
+  invalidateTelemetryCache()
+  return response.data
+}
+
+async function performLogout(
+  user: Ref<SessionUser | null>,
+  hasLoadedSession: Ref<boolean>,
+): Promise<void> {
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+  } finally {
+    setSessionUser(user, hasLoadedSession, null)
+    invalidateTelemetryCache()
+  }
+}
+
 /**
  * Gerencia sessão autenticada do motorista, fluxos de login/logout e recuperação de senha.
  */
@@ -123,6 +151,10 @@ export function useAuthSession(): AuthSessionState {
   const { user, hasLoadedSession } = createAuthStateRefs()
   const requestFetch = resolveRequestFetcher()
   const isAuthenticated = computed(() => user.value !== null)
+
+  function updateSessionUser(nextUser: SessionUser | null): void {
+    setSessionUser(user, hasLoadedSession, nextUser)
+  }
 
   function clearSessionState(): void {
     setSessionUser(user, hasLoadedSession, null)
@@ -142,34 +174,16 @@ export function useAuthSession(): AuthSessionState {
     }
   }
 
-  async function login(payload: LoginInput): Promise<SessionUser> {
-    const response = await $fetch<ApiItemResponse<SessionUser>>('/api/auth/login', {
-      method: 'POST',
-      body: payload,
-    })
-    setSessionUser(user, hasLoadedSession, response.data)
-    invalidateTelemetryCache()
-    return response.data
-  }
-
-  async function logout(): Promise<void> {
-    try {
-      await $fetch('/api/auth/logout', { method: 'POST' })
-    } finally {
-      clearSessionState()
-      invalidateTelemetryCache()
-    }
-  }
-
   return {
     user,
     hasLoadedSession,
     isAuthenticated,
     fetchSession,
-    login,
-    logout,
+    login: (payload) => performLogin(user, hasLoadedSession, payload),
+    logout: () => performLogout(user, hasLoadedSession),
     requestPasswordReset,
     confirmPasswordReset,
+    setSessionUser: updateSessionUser,
     clearSessionState,
   }
 }

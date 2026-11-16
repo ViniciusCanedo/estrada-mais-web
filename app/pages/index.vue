@@ -1,8 +1,17 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import type { HealthStatusPayload } from '#shared/schemas/health.schema'
+import { toCents, toMilliKmL } from '#shared/utils/units'
 import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
+import { useDriverSettings } from '~/composables/useDriverSettings'
+import { formatCurrencyFromCents, formatKmPerLiterFromMilli } from '~/utils/formatters'
 
 const { formattedMonthLabel } = useCompetencePeriod()
+const {
+  settings: driverSettings,
+  pending: settingsPending,
+  error: settingsError,
+} = useDriverSettings()
 
 const {
   data: health,
@@ -16,6 +25,17 @@ const {
 const manualCheckLoading = ref(false)
 const manualCheckResult = ref<HealthStatusPayload | null>(null)
 const manualCheckError = ref<string | null>(null)
+
+const maxCostBadgeLabel = computed(() =>
+  driverSettings.value
+    ? `META: ≤ ${formatCurrencyFromCents(toCents(driverSettings.value.maxCostPerKmReais))}`
+    : null,
+)
+const consumptionTargetLabel = computed(() =>
+  driverSettings.value
+    ? `Meta ${formatKmPerLiterFromMilli(toMilliKmL(driverSettings.value.targetConsumptionKmL))}`
+    : null,
+)
 
 async function handleManualFetch(): Promise<void> {
   manualCheckLoading.value = true
@@ -55,6 +75,64 @@ async function handleManualFetch(): Promise<void> {
         </UBadge>
       </div>
     </div>
+
+    <div
+      v-if="driverSettings"
+      data-testid="dashboard-targets-summary"
+      class="grid grid-cols-1 gap-4 md:grid-cols-2"
+    >
+      <div class="rounded-lg border-2 border-amber-default/70 bg-asphalt-surface p-5">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-semibold tracking-widest text-amber-default">
+            TETO OPERACIONAL
+          </span>
+          <span
+            data-testid="dashboard-max-cost-badge"
+            class="rounded-sm border border-asphalt-border bg-asphalt-bg px-2 py-0.5 font-mono text-[10px] text-highway-muted"
+          >
+            {{ maxCostBadgeLabel }}
+          </span>
+        </div>
+        <p class="mt-2 font-mono text-2xl font-bold text-white">
+          {{ formatCurrencyFromCents(toCents(driverSettings.maxCostPerKmReais)) }}
+          <span class="text-sm font-normal text-highway-muted">/ km</span>
+        </p>
+      </div>
+
+      <div class="rounded-lg border border-asphalt-border bg-asphalt-surface p-5">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-semibold tracking-widest text-highway-muted">
+            MÉDIA DIESEL
+          </span>
+          <NuxtLink
+            to="/settings"
+            class="font-mono text-[11px] text-amber-default underline-offset-4 hover:underline"
+          >
+            Calibrar metas
+          </NuxtLink>
+        </div>
+        <p
+          data-testid="dashboard-consumption-target"
+          class="mt-2 font-mono text-2xl font-bold text-amber-default"
+        >
+          {{ consumptionTargetLabel }}
+        </p>
+      </div>
+    </div>
+
+    <div
+      v-else-if="settingsPending"
+      class="rounded-lg border border-asphalt-border bg-asphalt-surface p-4 font-mono text-xs text-highway-muted"
+    >
+      Carregando metas operacionais...
+    </div>
+
+    <UAlert
+      v-else-if="settingsError"
+      color="warning"
+      variant="subtle"
+      title="Metas de telemetria indisponíveis no momento."
+    />
 
     <div class="rounded-lg border border-asphalt-border bg-asphalt-surface p-6">
       <div class="mb-4 flex items-center justify-between">
