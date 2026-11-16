@@ -11,9 +11,9 @@
 
 ## 3. Componentes Base UI e Layout Shell
 
-- [ ] 3.1 Criar `app/components/ui/AppRoadDivider.vue` e `app/components/ui/AppUnitInput.vue` (`defineModel`, `prefix`, `suffix`, `tone`, `error`, `disabled`, `active`, `id` e `<label>` acessível)
-- [ ] 3.2 Criar `app/components/layout/TelemetrySyncBadge.vue`, `app/components/layout/AppSidebar.vue` (`ESTRADA+`, links com badges, visibilidade condicional de `Sistema de Design [SPEC]` via `isDev`, mini-perfil e `Desconectar`) e `app/components/layout/AppTopBar.vue` (breadcrumb dinâmico, seletor mensal e botões `+ Lançar Despesa` e `+ Registrar Viagem`)
-- [ ] 3.3 Atualizar `app/layouts/default.vue` compondo `AppSidebar`, `AppTopBar`, `<slot />`, `useTelemetrySync()`, `useGlobalModals()` e modais `UModal` globais funcionais com fechamento por `Escape`
+- [x] 3.1 Criar `app/components/ui/AppRoadDivider.vue` e `app/components/ui/AppUnitInput.vue` (`defineModel`, `prefix`, `suffix`, `tone`, `error`, `disabled`, `active`, `id` e `<label>` acessível)
+- [x] 3.2 Criar `app/components/layout/TelemetrySyncBadge.vue`, `app/components/layout/AppSidebar.vue` (`ESTRADA+`, links com badges, visibilidade condicional de `Sistema de Design [SPEC]` via `isDev`, mini-perfil e `Desconectar`) e `app/components/layout/AppTopBar.vue` (breadcrumb dinâmico, seletor mensal e botões `+ Lançar Despesa` e `+ Registrar Viagem`)
+- [x] 3.3 Atualizar `app/layouts/default.vue` compondo `AppSidebar`, `AppTopBar`, `<slot />`, `useTelemetrySync()`, `useGlobalModals()` e modais `UModal` globais funcionais com fechamento por `Escape`
 
 ## 4. Páginas: Catálogo Design System, Início e Stubs de Navegação
 
