@@ -27,6 +27,19 @@ const MOCK_SESSION_USER = {
 
 registerEndpoint('/api/auth/me', () => ({ data: MOCK_SESSION_USER }))
 registerEndpoint('/api/auth/logout', () => ({ success: true }))
+registerEndpoint('/api/settings', () => ({
+  data: {
+    id: 1,
+    name: 'Valdir Silveira',
+    email: 'valdir.silveira.truck@estrada.com.br',
+    rntrc: '58.912.440-TAC',
+    vehicleModel: 'Scania R450 Highline 6x2 (2021)',
+    vehiclePlates: 'BRA-2E19 / CUR-4901',
+    targetConsumptionKmL: 2.35,
+    maxCostPerKmReais: 5.1,
+    updatedAt: '2026-09-16T12:00:00.000Z',
+  },
+}))
 
 registerEndpoint('/api/health', () => {
   if (healthFailure) {

@@ -64,4 +64,70 @@ describe('DriverRepository (SQLite :memory:)', () => {
     const defaultRepo = new DriverRepository()
     expect(defaultRepo.findByEmail('singleton.repo@estrada.com.br')?.id).toBe(driver.id)
   })
+
+  it('deve atualizar perfil cadastral, credenciais e metas de telemetria no SQLite', async () => {
+    const initialHash = ['scrypt', '0011223344556677', 'initialhash'].join('$')
+    const updatedHash = ['scrypt', '0011223344556677', 'newhash'].join('$')
+    const created = await createTestDriver(db, {
+      email: 'settings.repo@estrada.com.br',
+      passwordHash: initialHash,
+    })
+
+    const updatedProfile = repository.updateProfile(created.id, {
+      name: 'João Caminhoneiro',
+      rntrc: '99.111.222-TAC',
+      vehicleModel: 'Volvo FH540 6x4 (2023)',
+      vehiclePlates: 'XYZ-1A23 / ABC-9087',
+      updatedAt: '2026-09-18T10:00:00.000Z',
+    })
+    expect(updatedProfile?.name).toBe('João Caminhoneiro')
+    expect(updatedProfile?.rntrc).toBe('99.111.222-TAC')
+    expect(updatedProfile?.vehicleModel).toBe('Volvo FH540 6x4 (2023)')
+    expect(updatedProfile?.vehiclePlates).toBe('XYZ-1A23 / ABC-9087')
+
+    const updatedEmailOnly = repository.updateCredentials(created.id, {
+      email: '  NOVO.EMAIL@ESTRADA.COM.BR  ',
+      updatedAt: '2026-09-18T10:05:00.000Z',
+    })
+    expect(updatedEmailOnly?.email).toBe('novo.email@estrada.com.br')
+    expect(updatedEmailOnly?.passwordHash).toBe(initialHash)
+
+    const updatedWithPassword = repository.updateCredentials(created.id, {
+      email: 'novo.email@estrada.com.br',
+      passwordHash: updatedHash,
+      updatedAt: '2026-09-18T10:06:00.000Z',
+    })
+    expect(updatedWithPassword?.passwordHash).toBe(updatedHash)
+
+    const updatedTargets = repository.updateTelemetryTargets(created.id, {
+      targetConsumptionMilliKml: 2650,
+      maxCostPerKmCents: 580,
+      updatedAt: '2026-09-18T10:10:00.000Z',
+    })
+    expect(updatedTargets?.targetConsumptionMilliKml).toBe(2650)
+    expect(updatedTargets?.maxCostPerKmCents).toBe(580)
+
+    expect(
+      repository.updateProfile(999_999, {
+        name: 'Inexistente',
+        rntrc: '00.000.000-TAC',
+        vehicleModel: 'Scania',
+        vehiclePlates: 'AAA-0000',
+        updatedAt: '2026-09-18T10:00:00.000Z',
+      }),
+    ).toBeUndefined()
+    expect(
+      repository.updateCredentials(999_999, {
+        email: 'ninguem@estrada.com.br',
+        updatedAt: '2026-09-18T10:00:00.000Z',
+      }),
+    ).toBeUndefined()
+    expect(
+      repository.updateTelemetryTargets(999_999, {
+        targetConsumptionMilliKml: 2350,
+        maxCostPerKmCents: 510,
+        updatedAt: '2026-09-18T10:00:00.000Z',
+      }),
+    ).toBeUndefined()
+  })
 })

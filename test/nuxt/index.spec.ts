@@ -9,6 +9,7 @@ import DefaultLayout from '~/layouts/default.vue'
 import IndexPage from '~/pages/index.vue'
 
 let shouldFailHealth = false
+let shouldFailSettings = false
 
 const MOCK_SESSION_USER = {
   id: 1,
@@ -18,8 +19,26 @@ const MOCK_SESSION_USER = {
   vehicleSummary: 'Scania R450 • 6x2',
 }
 
+const MOCK_SETTINGS = {
+  id: 1,
+  name: 'Valdir Silveira',
+  email: 'valdir.silveira.truck@estrada.com.br',
+  rntrc: '58.912.440-TAC',
+  vehicleModel: 'Scania R450 Highline 6x2 (2021)',
+  vehiclePlates: 'BRA-2E19 / CUR-4901',
+  targetConsumptionKmL: 2.35,
+  maxCostPerKmReais: 5.1,
+  updatedAt: '2026-09-16T12:00:00.000Z',
+}
+
 registerEndpoint('/api/auth/me', () => ({ data: MOCK_SESSION_USER }))
 registerEndpoint('/api/auth/logout', () => ({ success: true }))
+registerEndpoint('/api/settings', () => {
+  if (shouldFailSettings) {
+    throw createError({ statusCode: 500, statusMessage: 'Internal Server Error' })
+  }
+  return { data: MOCK_SETTINGS }
+})
 
 registerEndpoint('/api/health', () => {
   if (shouldFailHealth) {
@@ -34,6 +53,8 @@ registerEndpoint('/api/health', () => {
 
 describe('Página Inicial e Componentes Globais (Nuxt Runtime)', () => {
   beforeEach(() => {
+    shouldFailSettings = false
+    clearNuxtData('driver-settings')
     const auth = useAuthSession()
     auth.user.value = { ...MOCK_SESSION_USER }
     auth.hasLoadedSession.value = true
@@ -44,6 +65,10 @@ describe('Página Inicial e Componentes Globais (Nuxt Runtime)', () => {
     const wrapper = await mountSuspended(IndexPage)
 
     expect(wrapper.text()).toContain('Estrada+ Telemetria')
+    expect(wrapper.find('[data-testid="dashboard-max-cost-badge"]').text()).toBe('META: ≤ R$ 5,10')
+    expect(wrapper.find('[data-testid="dashboard-consumption-target"]').text()).toBe(
+      'Meta 2,35 km/L',
+    )
     expect(wrapper.find('[data-testid="health-status-value"]').text()).toContain('ok')
     expect(wrapper.find('[data-testid="health-database-value"]').text()).toContain('connected')
 
@@ -68,6 +93,12 @@ describe('Página Inicial e Componentes Globais (Nuxt Runtime)', () => {
     expect(wrapper.text()).toContain('Não foi possível verificar a saúde do servidor.')
     vi.stubGlobal('$fetch', originalFetch)
     shouldFailHealth = false
+
+    clearNuxtData('driver-settings')
+    shouldFailSettings = true
+    const errorWrapper = await mountSuspended(IndexPage)
+    await flushPromises()
+    expect(errorWrapper.text()).toContain('Metas de telemetria indisponíveis no momento.')
   })
 
   it('renderiza o layout padrão, AppRoot e ErrorPage corretamente', async () => {
