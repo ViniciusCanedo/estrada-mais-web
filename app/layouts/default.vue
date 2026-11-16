@@ -1,13 +1,30 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import AppSidebar from '../components/layout/AppSidebar.vue'
 import AppTopBar from '../components/layout/AppTopBar.vue'
 import AppRoadDivider from '../components/ui/AppRoadDivider.vue'
+import { useAuthSession } from '../composables/useAuthSession'
 import { useGlobalModals } from '../composables/useGlobalModals'
 import { useTelemetrySync } from '../composables/useTelemetrySync'
 
 const isDev = import.meta.dev
 const { isOnline, isHealthy, lastSyncLabel, tripsCount, expensesCount } = useTelemetrySync()
 const { isTripModalOpen, isExpenseModalOpen, closeModals } = useGlobalModals()
+const { user, logout } = useAuthSession()
+
+const driverProfile = computed(() =>
+  user.value
+    ? {
+        name: user.value.name,
+        vehicleSummary: user.value.vehicleSummary,
+        initials: user.value.initials,
+      }
+    : {
+        name: 'Motorista',
+        vehicleSummary: 'Frota TAC',
+        initials: 'MT',
+      },
+)
 
 function createModalUi(borderClass: string, maxWidthClass: string) {
   return {
@@ -24,9 +41,10 @@ function createModalUi(borderClass: string, maxWidthClass: string) {
 const tripModalUi = createModalUi('border-amber-default/70', 'max-w-2xl')
 const expenseModalUi = createModalUi('border-expense-blue/70', 'max-w-xl')
 
-function handleLogout(): void {
-  // Fluxo completo de encerramento de sessão será conectado na spec 03-autenticacao.
+async function handleLogout(): Promise<void> {
   closeModals()
+  await logout()
+  await navigateTo('/login', { replace: true })
 }
 </script>
 
@@ -39,6 +57,7 @@ function handleLogout(): void {
       :is-healthy="isHealthy"
       :last-sync-label="lastSyncLabel"
       :is-dev="isDev"
+      :driver="driverProfile"
       @logout="handleLogout"
     />
 
