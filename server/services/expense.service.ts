@@ -73,7 +73,7 @@ function requireExpenseRow(row: ExpenseRow | undefined): ExpenseRow {
   return row
 }
 
-function toExpenseDto(row: ExpenseRow): ExpenseDto {
+export function toExpenseDto(row: ExpenseRow): ExpenseDto {
   const amountReais = fromCents(row.amountCents)
   const fuelLiters =
     row.fuelLitersDeciliters !== null ? fromDeciliters(row.fuelLitersDeciliters) : null

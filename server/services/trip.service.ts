@@ -52,7 +52,7 @@ export interface ITripService {
   deleteTrip(driverId: number, tripId: number): void
 }
 
-function toTripDto(row: TripRow): TripDto {
+export function toTripDto(row: TripRow): TripDto {
   const origin = formatLocation(row.originCity, row.originState)
   const destination = formatLocation(row.destinationCity, row.destinationState)
   const fuelLiters = fromDeciliters(row.fuelLitersDeciliters)

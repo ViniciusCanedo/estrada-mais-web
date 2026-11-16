@@ -5,9 +5,9 @@
 
 ## 2. Repository, Service e Endpoints HTTP
 
-- [ ] 2.1 Implementar `server/repositories/report.repository.ts` com `getMonthlyAggregates`, `getSixMonthsAggregates`, `listTripsForMonth` e `listExpensesForMonth` via Drizzle ORM sobre `trips` e `expenses`
-- [ ] 2.2 Exportar mappers `toTripDto` (`server/services/trip.service.ts`) e `toExpenseDto` (`server/services/expense.service.ts`) e implementar `server/services/report.service.ts` com RN-DASH-01..06, proporções exatas (soma 100% ou 0%) sem `NaN`/`Infinity` e geração de CSV UTF-8 BOM (`\uFEFF`) separador `;` com proteção anti-CSV Injection
-- [ ] 2.3 Implementar `server/api/reports/dashboard.get.ts` e `server/api/reports/csv.get.ts` autenticados via `withAuthenticatedDriver` e validados por `dashboardQuerySchema`
+- [x] 2.1 Implementar `server/repositories/report.repository.ts` com `getMonthlyAggregates`, `getSixMonthsAggregates`, `listTripsForMonth` e `listExpensesForMonth` via Drizzle ORM sobre `trips` e `expenses`
+- [x] 2.2 Exportar mappers `toTripDto` (`server/services/trip.service.ts`) e `toExpenseDto` (`server/services/expense.service.ts`) e implementar `server/services/report.service.ts` com RN-DASH-01..06, proporções exatas (soma 100% ou 0%) sem `NaN`/`Infinity` e geração de CSV UTF-8 BOM (`\uFEFF`) separador `;` com proteção anti-CSV Injection
+- [x] 2.3 Implementar `server/api/reports/dashboard.get.ts` e `server/api/reports/csv.get.ts` autenticados via `withAuthenticatedDriver` e validados por `dashboardQuerySchema`
 
 ## 3. Front-end: Composables, Componentes do Dashboard, Exportação e Impressão
 
