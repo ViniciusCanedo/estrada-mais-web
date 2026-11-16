@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import type { HealthResponse } from '#shared/http/api.schemas'
-import { getGetHealthUrl, getHealth } from '#shared/http/system/system'
-
-const counter = useCounterStore()
+import type { HealthStatusPayload } from '#shared/schemas/health.schema'
 
 const {
   data: health,
   status: healthStatus,
+  error: healthError,
   refresh: refreshHealth,
-} = await useApiFetch<HealthResponse>(getGetHealthUrl())
+} = await useApiFetch<HealthStatusPayload>('/health', {
+  key: 'health-status',
+})
 
 const manualCheckLoading = ref(false)
-const manualCheckResult = ref<HealthResponse | null>(null)
+const manualCheckResult = ref<HealthStatusPayload | null>(null)
+const manualCheckError = ref<string | null>(null)
 
-async function handleManualFetch() {
+async function handleManualFetch(): Promise<void> {
   manualCheckLoading.value = true
+  manualCheckError.value = null
   try {
-    manualCheckResult.value = await getHealth()
+    manualCheckResult.value = await $fetch<HealthStatusPayload>('/api/health')
+  } catch {
+    manualCheckError.value = 'Não foi possível verificar a saúde do servidor.'
   } finally {
     manualCheckLoading.value = false
   }
@@ -29,101 +33,88 @@ async function handleManualFetch() {
       <header class="flex items-center justify-between border-b border-default pb-6">
         <div class="space-y-1">
           <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-layers" class="size-6 text-primary" />
-            <h1 class="text-2xl font-bold text-highlighted">Nuxt 4 Scaffolding</h1>
+            <UIcon name="i-lucide-truck" class="size-6 text-primary" />
+            <h1 class="text-2xl font-bold text-highlighted">Estrada+ Telemetria</h1>
           </div>
           <p class="text-sm text-muted">
-            Nuxt UI v4, Pinia, Orval ($fetch &amp; useFetch), Vitest e Playwright configurados.
+            Fundação Nuxt 4, Drizzle ORM + SQLite (WAL), Zod isomórfico e Quality Gates ativos.
           </p>
         </div>
         <UColorModeButton />
       </header>
 
-      <div class="grid gap-6 md:grid-cols-2">
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 font-semibold text-highlighted">
-                <UIcon name="i-lucide-database" class="size-5 text-primary" />
-                <span>Pinia Store</span>
-              </div>
-              <UBadge color="primary" variant="subtle"> Estado Reativo </UBadge>
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 font-semibold text-highlighted">
+              <UIcon name="i-lucide-activity" class="size-5 text-primary" />
+              <span>Saúde da Plataforma &amp; SQLite</span>
             </div>
-          </template>
+            <UBadge :color="health?.status === 'ok' ? 'success' : 'neutral'" variant="subtle">
+              {{ healthStatus }}
+            </UBadge>
+          </div>
+        </template>
 
-          <div class="space-y-4">
-            <div class="flex items-baseline justify-between rounded-lg bg-elevated p-4">
-              <span class="text-sm text-muted">Contador atual</span>
-              <span data-testid="counter-value" class="text-2xl font-bold text-highlighted">
-                {{ counter.count }}
+        <div class="space-y-4">
+          <UAlert
+            v-if="healthError || manualCheckError"
+            color="error"
+            variant="subtle"
+            title="Falha ao consultar /api/health"
+            :description="manualCheckError ?? 'O serviço ou banco de dados está indisponível.'"
+          />
+
+          <div v-else-if="healthStatus === 'pending'" class="rounded-lg bg-elevated p-4 text-sm">
+            <span class="text-muted">Verificando conectividade com o SQLite...</span>
+          </div>
+
+          <div v-else-if="!health" class="rounded-lg bg-elevated p-4 text-sm">
+            <span class="text-muted">Nenhum dado de telemetria disponível no momento.</span>
+          </div>
+
+          <div v-else class="space-y-2 rounded-lg bg-elevated p-4 text-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-muted">Status da API:</span>
+              <span data-testid="health-status-value" class="font-medium text-highlighted">
+                {{ health.status }}
               </span>
             </div>
-
-            <div class="flex items-center gap-2">
-              <UButton
-                data-testid="increment-btn"
-                icon="i-lucide-plus"
-                label="Incrementar"
-                color="primary"
-                @click="counter.increment()"
-              />
-              <UButton
-                data-testid="reset-btn"
-                icon="i-lucide-rotate-ccw"
-                label="Resetar"
-                color="neutral"
-                variant="outline"
-                @click="counter.reset()"
-              />
-            </div>
-          </div>
-        </UCard>
-
-        <UCard>
-          <template #header>
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 font-semibold text-highlighted">
-                <UIcon name="i-lucide-globe" class="size-5 text-primary" />
-                <span>Orval HTTP (SSR &amp; Client)</span>
-              </div>
-              <UBadge :color="health?.status === 'ok' ? 'success' : 'neutral'" variant="subtle">
-                {{ healthStatus }}
-              </UBadge>
+              <span class="text-muted">Banco SQLite:</span>
+              <span data-testid="health-database-value" class="font-mono text-xs text-highlighted">
+                {{ health.database }}
+              </span>
             </div>
-          </template>
-
-          <div class="space-y-4">
-            <div class="space-y-1 rounded-lg bg-elevated p-4 text-sm">
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Status (useFetch):</span>
-                <span class="font-medium text-highlighted">{{ health?.status ?? '—' }}</span>
-              </div>
-              <div v-if="manualCheckResult" class="flex items-center justify-between">
-                <span class="text-muted">Último $fetch:</span>
-                <span class="font-mono text-xs text-toned">{{ manualCheckResult.timestamp }}</span>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <UButton
-                icon="i-lucide-refresh-cw"
-                label="useFetch Refresh"
-                color="neutral"
-                variant="outline"
-                @click="refreshHealth()"
-              />
-              <UButton
-                icon="i-lucide-zap"
-                label="Testar $fetch"
-                color="primary"
-                variant="soft"
-                :loading="manualCheckLoading"
-                @click="handleManualFetch()"
-              />
+            <div v-if="manualCheckResult" class="flex items-center justify-between">
+              <span class="text-muted">Último $fetch manual:</span>
+              <span data-testid="manual-health-timestamp" class="font-mono text-xs text-toned">
+                {{ manualCheckResult.timestamp }}
+              </span>
             </div>
           </div>
-        </UCard>
-      </div>
+
+          <div class="flex items-center gap-2">
+            <UButton
+              data-testid="refresh-health-btn"
+              icon="i-lucide-refresh-cw"
+              label="Atualizar Status"
+              color="neutral"
+              variant="outline"
+              @click="refreshHealth()"
+            />
+            <UButton
+              data-testid="manual-fetch-btn"
+              icon="i-lucide-zap"
+              label="Verificar via $fetch"
+              color="primary"
+              variant="soft"
+              :loading="manualCheckLoading"
+              @click="handleManualFetch()"
+            />
+          </div>
+        </div>
+      </UCard>
     </UContainer>
   </div>
 </template>

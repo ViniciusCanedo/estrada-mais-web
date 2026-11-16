@@ -12,8 +12,23 @@ export default defineNuxtConfig({
   ],
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
+    appSecret: process.env.NUXT_APP_SECRET || '',
+    databaseUrl: process.env.NUXT_DATABASE_URL || './.data/sqlite/estrada.db',
+    smtp: {
+      host: process.env.NUXT_SMTP_HOST || '',
+      port: Number(process.env.NUXT_SMTP_PORT || 587),
+      user: process.env.NUXT_SMTP_USER || '',
+      pass: process.env.NUXT_SMTP_PASS || '',
+      from: process.env.NUXT_SMTP_FROM || 'Estrada+ Telemetria <no-reply@estradamais.com.br>',
+    },
     public: {
-      apiBase: '/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+      appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    },
+  },
+  nitro: {
+    externals: {
+      external: ['better-sqlite3'],
     },
   },
   typescript: {
