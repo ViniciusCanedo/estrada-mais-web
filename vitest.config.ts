@@ -1,3 +1,4 @@
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { defineVitestProject } from '@nuxt/test-utils/config'
 
@@ -8,7 +9,6 @@ export default defineConfig({
       include: ['app/**/*.{ts,vue}', 'server/**/*.ts', 'shared/**/*.ts'],
       exclude: [
         '**/*.d.ts',
-        'shared/http/**',
         'app/app.config.ts',
         'app/types/**',
         'server/types/**',
@@ -25,6 +25,12 @@ export default defineConfig({
           functions: 90,
           lines: 90,
         },
+        'server/repositories/**': {
+          statements: 90,
+          branches: 90,
+          functions: 90,
+          lines: 90,
+        },
         'shared/**': {
           statements: 90,
           branches: 90,
@@ -35,6 +41,12 @@ export default defineConfig({
     },
     projects: [
       {
+        resolve: {
+          alias: {
+            '#shared': resolve(import.meta.dirname, 'shared'),
+            '#server': resolve(import.meta.dirname, 'server'),
+          },
+        },
         test: {
           name: 'unit',
           include: ['test/unit/*.{test,spec}.ts'],
