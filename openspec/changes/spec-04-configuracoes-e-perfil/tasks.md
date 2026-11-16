@@ -11,9 +11,9 @@
 
 ## 3. Front-end: Composables, Componentes e Páginas
 
-- [ ] 3.1 Estender `app/composables/useAuthSession.ts` expondo `setSessionUser` e invalidando `'driver-settings'` em `login`/`logout`; implementar `app/composables/useDriverSettings.ts` consumindo `/api/settings` via `useApiFetch` (chave `'driver-settings'`) e sincronizando `useAuthSession()` após salvar perfil/credenciais
-- [ ] 3.2 Criar `app/components/settings/DriverProfileForm.vue`, `SecurityCredentialsForm.vue` (incluindo nota informativa sobre biometria desktop) e `TelemetryTargetsCard.vue` (sliders acessíveis com leitura `font-mono` em tempo real) obedecendo `<= 250` linhas, sem I/O direto e com `vuejs-accessibility`
-- [ ] 3.3 Atualizar `app/pages/settings.vue` com layout em grid de 3 colunas (estados de loading, erro e vazio + toasts via `useToast()`) e atualizar `app/pages/index.vue` para exibir os indicadores de meta (`META: ≤ R$ ...` e `Meta ... km/L`) vindos de `/api/settings`
+- [x] 3.1 Estender `app/composables/useAuthSession.ts` expondo `setSessionUser` e invalidando `'driver-settings'` em `login`/`logout`; implementar `app/composables/useDriverSettings.ts` consumindo `/api/settings` via `useApiFetch` (chave `'driver-settings'`) e sincronizando `useAuthSession()` após salvar perfil/credenciais
+- [x] 3.2 Criar `app/components/settings/DriverProfileForm.vue`, `SecurityCredentialsForm.vue` (incluindo nota informativa sobre biometria desktop) e `TelemetryTargetsCard.vue` (sliders acessíveis com leitura `font-mono` em tempo real) obedecendo `<= 250` linhas, sem I/O direto e com `vuejs-accessibility`
+- [x] 3.3 Atualizar `app/pages/settings.vue` com layout em grid de 3 colunas (estados de loading, erro e vazio + toasts via `useToast()`) e atualizar `app/pages/index.vue` para exibir os indicadores de meta (`META: ≤ R$ ...` e `Meta ... km/L`) vindos de `/api/settings`
 
 ## 4. Testes Automatizados e Quality Gate
 
