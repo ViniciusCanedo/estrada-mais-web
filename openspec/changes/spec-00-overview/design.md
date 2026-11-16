@@ -57,6 +57,12 @@ Restrições normativas (`.agents/CONSTITUTION.md`):
 - **Motivação:** `estrada-desktop.html` é um mockup HTML estático de referência externa; preservá-lo no `.prettierignore` mantém o arquivo original intacto byte a byte e evita que o `lint-staged` altere o mockup no commit. Já `.agent/` e `docs/raw_specs/` são documentos Markdown do projeto e passam a atender integralmente ao `prettier --check .`.
 - **Alternativas consideradas:** Reformatar `estrada-desktop.html` com Prettier (descartado para preservar o mockup visual original sem alterações cosméticas desnecessárias).
 
+### 5. Isolamento de `workspaceDir` no `nuxt.config.ts` para Git Worktrees
+
+- **Decisão:** Definir `workspaceDir: '.'` em `nuxt.config.ts`.
+- **Motivação:** Em uma git worktree (`.git` como arquivo apontando para o repositório pai), a resolução automática `findWorkspaceDir` do `@nuxt/schema` sobe até o repositório pai fora da worktree (`.git/config`), fazendo `@nuxt/test-utils` incluir `../../../vitest.config.*` no `.nuxt/tsconfig.node.json` e quebrando `nuxt typecheck` por ausência de `node_modules` na raiz pai. Fixar `workspaceDir: '.'` resolve `workspaceDir === rootDir` tanto na raiz quanto em qualquer worktree.
+- **Alternativas consideradas:** Instalar `node_modules` no repositório pai ou alterar `.nuxt/tsconfig.node.json` manualmente (ambos descartados por serem frágeis, violarem o isolamento de worktree e serem sobrescritos pelo `nuxt prepare`).
+
 ## Risks / Trade-offs
 
 - **Risco:** `knip` sinalizar exports de `shared/types/domain.ts`, `shared/utils/units.ts` ou `server/utils/domain-error.ts` caso não sejam consumidos em `app/`/`server/` ainda → **Mitigação:** `knip.json` já inclui `shared/**/*.ts` e `server/**/*.ts` em `entry`, além de os arquivos de teste em `test/unit/*.spec.ts` importarem os exports; validar explicitamente com `npm run quality`.
