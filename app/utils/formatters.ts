@@ -52,6 +52,13 @@ export function formatLitersFromDeciliters(deciliters: number): string {
 }
 
 /**
+ * Formata peso de carga em toneladas para pt-BR (ex.: 32.4 -> "32,4 ton").
+ */
+export function formatCargoTons(tons: number): string {
+  return `${LITERS_FORMATTER.format(tons)} ton`
+}
+
+/**
  * Formata média de consumo em milésimos de km/L para pt-BR (ex.: 2420 -> "2,42 km/L").
  */
 export function formatKmPerLiterFromMilli(milliKmL: number): string {
