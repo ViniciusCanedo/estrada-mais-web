@@ -1,8 +1,8 @@
 ## 1. Dependências e Scripts (`package.json` & `package-lock.json`)
 
-- [ ] 1.1 Desinstalar `orval` (`npm uninstall orval`) e remover o script `"api:generate"` de `package.json`
-- [ ] 1.2 Instalar `drizzle-orm`, `better-sqlite3` e `nodemailer` com `--save-exact`, e `drizzle-kit`, `drizzle-seed`, `@types/better-sqlite3`, `@types/nodemailer` e `tsx` com `--save-dev`, atualizando `allowScripts` se necessário
-- [ ] 1.3 Validar o carregamento do addon nativo `better-sqlite3` em Node (`SELECT 1 as ok` em `:memory:`) e adicionar os scripts `db:generate`, `db:migrate`, `db:seed` e `db:studio` no `package.json`
+- [x] 1.1 Desinstalar `orval` (`npm uninstall orval`) e remover o script `"api:generate"` de `package.json`
+- [x] 1.2 Instalar `drizzle-orm`, `better-sqlite3` e `nodemailer` com `--save-exact`, e `drizzle-kit`, `drizzle-seed`, `@types/better-sqlite3`, `@types/nodemailer` e `tsx` com `--save-dev`, atualizando `allowScripts` se necessário
+- [x] 1.3 Validar o carregamento do addon nativo `better-sqlite3` em Node (`SELECT 1 as ok` em `:memory:`) e adicionar os scripts `db:generate`, `db:migrate`, `db:seed` e `db:studio` no `package.json`
 
 ## 2. Limpeza de Resíduos do Template e Orval
 
