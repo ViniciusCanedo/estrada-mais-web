@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { HealthStatusPayload } from '#shared/schemas/health.schema'
+import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
+
+const { formattedMonthLabel } = useCompetencePeriod()
 
 const {
   data: health,
@@ -28,93 +31,112 @@ async function handleManualFetch(): Promise<void> {
 </script>
 
 <template>
-  <div class="min-h-screen bg-default py-12 text-default">
-    <UContainer class="max-w-3xl space-y-6">
-      <header class="flex items-center justify-between border-b border-default pb-6">
-        <div class="space-y-1">
-          <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-truck" class="size-6 text-primary" />
-            <h1 class="text-2xl font-bold text-highlighted">Estrada+ Telemetria</h1>
-          </div>
-          <p class="text-sm text-muted">
-            Fundação Nuxt 4, Drizzle ORM + SQLite (WAL), Zod isomórfico e Quality Gates ativos.
+  <div data-testid="screen-dashboard" class="space-y-6">
+    <div class="border-b border-asphalt-border pb-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="font-mono text-xs tracking-widest text-amber-default uppercase">
+            TELEMETRIA &amp; CONTROLE OPERACIONAL • {{ formattedMonthLabel }}
+          </span>
+          <h1 class="mt-1 font-display text-3xl font-bold text-white uppercase">
+            Estrada+ Telemetria
+          </h1>
+          <p class="mt-1 text-sm text-highway-muted">
+            Shell Night Highway, Drizzle ORM + SQLite (WAL) e monitoramento em tempo real ativos.
           </p>
         </div>
-        <UColorModeButton />
-      </header>
 
-      <UCard>
-        <template #header>
+        <UBadge
+          :color="health?.status === 'ok' ? 'success' : 'neutral'"
+          variant="subtle"
+          class="font-mono uppercase"
+        >
+          {{ healthStatus }}
+        </UBadge>
+      </div>
+    </div>
+
+    <div class="rounded-lg border border-asphalt-border bg-asphalt-surface p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <div
+          class="flex items-center gap-2 font-display text-lg tracking-wide text-white uppercase"
+        >
+          <UIcon name="i-lucide-activity" class="size-5 text-amber-default" />
+          <span>Saúde da Plataforma &amp; SQLite</span>
+        </div>
+        <span class="font-mono text-xs text-highway-muted">/api/health</span>
+      </div>
+
+      <div class="space-y-4">
+        <UAlert
+          v-if="healthError || manualCheckError"
+          color="error"
+          variant="subtle"
+          title="Falha ao consultar /api/health"
+          :description="manualCheckError ?? 'O serviço ou banco de dados está indisponível.'"
+        />
+
+        <div
+          v-else-if="healthStatus === 'pending'"
+          class="rounded-sm border border-asphalt-border bg-asphalt-bg p-4 font-mono text-sm text-highway-muted"
+        >
+          Verificando conectividade com o SQLite...
+        </div>
+
+        <div
+          v-else-if="!health"
+          class="rounded-sm border border-asphalt-border bg-asphalt-bg p-4 font-mono text-sm text-highway-muted"
+        >
+          Nenhum dado de telemetria disponível no momento.
+        </div>
+
+        <div
+          v-else
+          class="space-y-2 rounded-sm border border-asphalt-border bg-asphalt-bg p-4 text-sm"
+        >
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 font-semibold text-highlighted">
-              <UIcon name="i-lucide-activity" class="size-5 text-primary" />
-              <span>Saúde da Plataforma &amp; SQLite</span>
-            </div>
-            <UBadge :color="health?.status === 'ok' ? 'success' : 'neutral'" variant="subtle">
-              {{ healthStatus }}
-            </UBadge>
+            <span class="text-highway-muted">Status da API:</span>
+            <span data-testid="health-status-value" class="font-mono font-semibold text-white">
+              {{ health.status }}
+            </span>
           </div>
-        </template>
-
-        <div class="space-y-4">
-          <UAlert
-            v-if="healthError || manualCheckError"
-            color="error"
-            variant="subtle"
-            title="Falha ao consultar /api/health"
-            :description="manualCheckError ?? 'O serviço ou banco de dados está indisponível.'"
-          />
-
-          <div v-else-if="healthStatus === 'pending'" class="rounded-lg bg-elevated p-4 text-sm">
-            <span class="text-muted">Verificando conectividade com o SQLite...</span>
+          <div class="flex items-center justify-between">
+            <span class="text-highway-muted">Banco SQLite:</span>
+            <span data-testid="health-database-value" class="font-mono text-xs text-highway-green">
+              {{ health.database }}
+            </span>
           </div>
-
-          <div v-else-if="!health" class="rounded-lg bg-elevated p-4 text-sm">
-            <span class="text-muted">Nenhum dado de telemetria disponível no momento.</span>
-          </div>
-
-          <div v-else class="space-y-2 rounded-lg bg-elevated p-4 text-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-muted">Status da API:</span>
-              <span data-testid="health-status-value" class="font-medium text-highlighted">
-                {{ health.status }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-muted">Banco SQLite:</span>
-              <span data-testid="health-database-value" class="font-mono text-xs text-highlighted">
-                {{ health.database }}
-              </span>
-            </div>
-            <div v-if="manualCheckResult" class="flex items-center justify-between">
-              <span class="text-muted">Último $fetch manual:</span>
-              <span data-testid="manual-health-timestamp" class="font-mono text-xs text-toned">
-                {{ manualCheckResult.timestamp }}
-              </span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <UButton
-              data-testid="refresh-health-btn"
-              icon="i-lucide-refresh-cw"
-              label="Atualizar Status"
-              color="neutral"
-              variant="outline"
-              @click="refreshHealth()"
-            />
-            <UButton
-              data-testid="manual-fetch-btn"
-              icon="i-lucide-zap"
-              label="Verificar via $fetch"
-              color="primary"
-              variant="soft"
-              :loading="manualCheckLoading"
-              @click="handleManualFetch()"
-            />
+          <div v-if="manualCheckResult" class="flex items-center justify-between">
+            <span class="text-highway-muted">Último $fetch manual:</span>
+            <span
+              data-testid="manual-health-timestamp"
+              class="font-mono text-xs text-amber-default"
+            >
+              {{ manualCheckResult.timestamp }}
+            </span>
           </div>
         </div>
-      </UCard>
-    </UContainer>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <UButton
+            data-testid="refresh-health-btn"
+            icon="i-lucide-refresh-cw"
+            label="Atualizar Status"
+            color="neutral"
+            variant="outline"
+            @click="refreshHealth()"
+          />
+          <UButton
+            data-testid="manual-fetch-btn"
+            icon="i-lucide-zap"
+            label="Verificar via $fetch"
+            color="secondary"
+            variant="outline"
+            :loading="manualCheckLoading"
+            @click="handleManualFetch()"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>

@@ -17,8 +17,8 @@
 
 ## 4. Páginas: Catálogo Design System, Início e Stubs de Navegação
 
-- [ ] 4.1 Implementar `app/pages/design-system.vue` e subcomponentes em `app/components/design-system/` com as 4 seções Night Highway (Paleta, Tipografia, Formulários com Unidades nos 4 estados e Matriz de Botões) e redirecionamento para `/` quando `!import.meta.dev`
-- [ ] 4.2 Atualizar `app/pages/index.vue` para o shell Night Highway preservando a verificação de `/api/health` e criar stubs acessíveis em `app/pages/trips.vue`, `app/pages/expenses.vue` e `app/pages/settings.vue`
+- [x] 4.1 Implementar `app/pages/design-system.vue` e subcomponentes em `app/components/design-system/` com as 4 seções Night Highway (Paleta, Tipografia, Formulários com Unidades nos 4 estados e Matriz de Botões) e redirecionamento para `/` quando `!import.meta.dev`
+- [x] 4.2 Atualizar `app/pages/index.vue` para o shell Night Highway preservando a verificação de `/api/health` e criar stubs acessíveis em `app/pages/trips.vue`, `app/pages/expenses.vue` e `app/pages/settings.vue`
 
 ## 5. Testes Automatizados e Validação
 
