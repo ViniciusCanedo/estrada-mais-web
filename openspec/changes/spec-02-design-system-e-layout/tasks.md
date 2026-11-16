@@ -5,9 +5,9 @@
 
 ## 2. Formatadores e Composables Reativos
 
-- [ ] 2.1 Implementar `app/utils/formatters.ts` (`formatCurrencyFromCents`, `formatKm`, `formatLitersFromDeciliters`, `formatKmPerLiterFromMilli`, `formatDateBr`, `formatShortDateBr`) em `pt-BR` reutilizando `shared/utils/units.ts`
-- [ ] 2.2 Implementar `app/composables/useCompetencePeriod.ts` com estado reativo global `selectedMonth` (padrão `'2026-09'`), `formattedMonthLabel`, `previousMonth()`, `nextMonth()`, `setMonth(month)` e helpers puros de virada de ano
-- [ ] 2.3 Implementar `app/composables/useGlobalModals.ts` (`isTripModalOpen`, `isExpenseModalOpen`, `openTripModal`, `openExpenseModal`, `closeModals`) e `app/composables/useTelemetrySync.ts` (único ponto de chamada a `/api/health?month=...` via `useApiFetch` e `$fetch` com polling de 60s, foco e eventos `online`/`offline`)
+- [x] 2.1 Implementar `app/utils/formatters.ts` (`formatCurrencyFromCents`, `formatKm`, `formatLitersFromDeciliters`, `formatKmPerLiterFromMilli`, `formatDateBr`, `formatShortDateBr`) em `pt-BR` reutilizando `shared/utils/units.ts`
+- [x] 2.2 Implementar `app/composables/useCompetencePeriod.ts` com estado reativo global `selectedMonth` (padrão `'2026-09'`), `formattedMonthLabel`, `previousMonth()`, `nextMonth()`, `setMonth(month)` e helpers puros de virada de ano
+- [x] 2.3 Implementar `app/composables/useGlobalModals.ts` (`isTripModalOpen`, `isExpenseModalOpen`, `openTripModal`, `openExpenseModal`, `closeModals`) e `app/composables/useTelemetrySync.ts` (único ponto de chamada a `/api/health?month=...` via `useApiFetch` e `$fetch` com polling de 60s, foco e eventos `online`/`offline`)
 
 ## 3. Componentes Base UI e Layout Shell
 
