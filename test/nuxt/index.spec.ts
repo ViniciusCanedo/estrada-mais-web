@@ -1,39 +1,55 @@
 import type { NuxtError } from '#app'
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
-import { describe, expect, it } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 import AppRoot from '~/app.vue'
 import ErrorPage from '~/error.vue'
 import DefaultLayout from '~/layouts/default.vue'
 import IndexPage from '~/pages/index.vue'
-import { useCounterStore } from '~/stores/counter'
 
-registerEndpoint('/api/health', () => ({
-  status: 'ok',
-  timestamp: '2026-10-23T00:00:00.000Z',
-}))
+let shouldFailHealth = false
+
+registerEndpoint('/api/health', () => {
+  if (shouldFailHealth) {
+    throw createError({ statusCode: 503, statusMessage: 'Service Unavailable' })
+  }
+  return {
+    status: 'ok',
+    database: 'connected',
+    timestamp: '2026-09-16T12:00:00.000Z',
+  }
+})
 
 describe('Página Inicial e Componentes Globais (Nuxt Runtime)', () => {
-  it('renderiza o cabeçalho do scaffolding, interage com a store Pinia e executa fetch manual', async () => {
+  it('renderiza o status de saúde da plataforma e executa verificação manual via $fetch', async () => {
+    shouldFailHealth = false
     const wrapper = await mountSuspended(IndexPage)
 
-    expect(wrapper.text()).toContain('Nuxt 4 Scaffolding')
-    expect(wrapper.find('[data-testid="counter-value"]').text()).toContain('0')
+    expect(wrapper.text()).toContain('Estrada+ Telemetria')
+    expect(wrapper.find('[data-testid="health-status-value"]').text()).toContain('ok')
+    expect(wrapper.find('[data-testid="health-database-value"]').text()).toContain('connected')
 
-    const incrementBtn = wrapper.find('[data-testid="increment-btn"]')
-    await incrementBtn.trigger('click')
-    expect(wrapper.find('[data-testid="counter-value"]').text()).toContain('1')
+    const manualFetchBtn = wrapper.find('[data-testid="manual-fetch-btn"]')
+    expect(manualFetchBtn.exists()).toBe(true)
+    await manualFetchBtn.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="manual-health-timestamp"]').text()).toContain(
+      '2026-09-16T12:00:00.000Z',
+    )
 
-    const store = useCounterStore()
-    expect(store.doubleCount).toBe(2)
+    const refreshBtn = wrapper.find('[data-testid="refresh-health-btn"]')
+    expect(refreshBtn.exists()).toBe(true)
+    await refreshBtn.trigger('click')
+    await flushPromises()
 
-    const resetBtn = wrapper.find('[data-testid="reset-btn"]')
-    await resetBtn.trigger('click')
-    expect(wrapper.find('[data-testid="counter-value"]').text()).toContain('0')
-
-    const buttons = wrapper.findAll('button')
-    const manualFetchBtn = buttons.find((btn) => btn.text().includes('Testar $fetch'))
-    expect(manualFetchBtn).toBeDefined()
-    await manualFetchBtn?.trigger('click')
+    shouldFailHealth = true
+    const originalFetch = globalThis.$fetch
+    vi.stubGlobal('$fetch', vi.fn().mockRejectedValue(new Error('Falha de rede')))
+    await manualFetchBtn.trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('Não foi possível verificar a saúde do servidor.')
+    vi.stubGlobal('$fetch', originalFetch)
+    shouldFailHealth = false
   })
 
   it('renderiza o layout padrão, AppRoot e ErrorPage corretamente', async () => {
