@@ -10,7 +10,7 @@
 
 ## 3. Endpoints HTTP (`/api/trips`)
 
-- [ ] 3.1 Implementar `server/api/trips/index.get.ts`, `index.post.ts` (`201`), `[id].put.ts` e `[id].delete.ts` com `withAuthenticatedDriver` e validação via `#shared/schemas/trip.schema`
+- [x] 3.1 Implementar `server/api/trips/index.get.ts`, `index.post.ts` (`201`), `[id].put.ts` e `[id].delete.ts` com `withAuthenticatedDriver` e validação via `#shared/schemas/trip.schema`
 
 ## 4. Front-end: Composable, Componentes, Página e Layout
 
@@ -20,7 +20,7 @@
 
 ## 5. Testes Automatizados e Quality Gate
 
-- [ ] 5.1 Criar `test/unit/telematics.spec.ts`, `test/unit/trip.repository.spec.ts`, `test/unit/trip.service.spec.ts` e `test/unit/trip.endpoints.spec.ts` com SQLite `:memory:` e cobertura `>= 90%`
+- [x] 5.1 Criar `test/unit/telematics.spec.ts`, `test/unit/trip.repository.spec.ts`, `test/unit/trip.service.spec.ts` e `test/unit/trip.endpoints.spec.ts` com SQLite `:memory:` e cobertura `>= 90%`
 - [ ] 5.2 Criar `test/nuxt/trip-modal.spec.ts` e `test/nuxt/trips-page.spec.ts` (e ajustar mock em `test/nuxt/layout.spec.ts`), cobrindo cálculo ao vivo, validação, filtros, ordenação e estados da página
 - [ ] 5.3 Criar `test/e2e/trips.spec.ts` com motorista isolado (`createTestDriver`) validando criação, cálculo ao vivo, badge na Sidebar, filtros/ordenação, edição e exclusão com cascata nas despesas no SQLite
 - [ ] 5.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
