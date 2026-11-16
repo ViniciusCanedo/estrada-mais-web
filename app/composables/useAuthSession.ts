@@ -91,6 +91,7 @@ function invalidateTelemetryCache(): void {
     clearNuxtData('telemetry-sync-health')
     clearNuxtData('driver-settings')
     clearNuxtData('trips-list')
+    clearNuxtData('expenses-ledger')
   }
 }
 

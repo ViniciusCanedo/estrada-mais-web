@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { ExpensePayloadInput } from '#shared/schemas/expense.schema'
 import type { TripPayloadInput } from '#shared/schemas/trip.schema'
+import ExpenseFormModal from '../components/expenses/ExpenseFormModal.vue'
 import AppSidebar from '../components/layout/AppSidebar.vue'
 import AppTopBar from '../components/layout/AppTopBar.vue'
 import TripFormModal from '../components/trips/TripFormModal.vue'
-import AppRoadDivider from '../components/ui/AppRoadDivider.vue'
 import { extractAuthErrorMessage, useAuthSession } from '../composables/useAuthSession'
 import { useCompetencePeriod } from '../composables/useCompetencePeriod'
+import { useExpenses } from '../composables/useExpenses'
 import { useGlobalModals } from '../composables/useGlobalModals'
 import { useTelemetrySync } from '../composables/useTelemetrySync'
 import { useTripModalState } from '../composables/useTrips'
+import { resolveDefaultExpenseDate } from '../utils/expenses'
 
 const isDev = import.meta.dev
 const toast = useToast()
@@ -18,6 +21,14 @@ const { isOnline, isHealthy, lastSyncLabel, tripsCount, expensesCount } = useTel
 const { isTripModalOpen, isExpenseModalOpen, closeModals } = useGlobalModals()
 const { editingTrip, closeTripModal, createTrip, updateTrip } = useTripModalState()
 const { user, logout } = useAuthSession()
+const {
+  editingExpense,
+  mutating: savingExpense,
+  mutationError: expenseModalError,
+  createExpense,
+  updateExpense,
+  clearEditingExpense,
+} = useExpenses({ autoFetch: false })
 
 const savingTrip = ref(false)
 const tripModalError = ref<string | null>(null)
@@ -43,19 +54,37 @@ const driverProfile = computed(() =>
       },
 )
 
-function createModalUi(borderClass: string, maxWidthClass: string) {
-  return {
-    overlay: 'bg-black/80 backdrop-blur-xs',
-    content: `border-2 ${borderClass} bg-asphalt-surface ${maxWidthClass} divide-y divide-asphalt-border`,
-    header: 'bg-asphalt-bg px-6 py-4',
-    title: 'font-display text-lg font-bold tracking-wide text-white uppercase',
-    description: 'font-mono text-xs text-highway-muted',
-    body: 'p-6',
-    footer: 'justify-end gap-3 px-6 py-4',
+const defaultExpenseDate = computed(() => resolveDefaultExpenseDate(selectedMonth.value))
+
+watch(isExpenseModalOpen, (isOpen) => {
+  if (!isOpen) {
+    clearEditingExpense()
+  }
+})
+
+async function handleExpenseSubmit(payload: ExpensePayloadInput): Promise<void> {
+  const target = editingExpense.value
+  try {
+    if (target) {
+      await updateExpense(target.id, payload)
+      toast.add({
+        title: 'Despesa atualizada com sucesso.',
+        color: 'success',
+        icon: 'i-lucide-check-circle-2',
+      })
+    } else {
+      await createExpense(payload)
+      toast.add({
+        title: 'Despesa lançada com sucesso.',
+        color: 'success',
+        icon: 'i-lucide-check-circle-2',
+      })
+    }
+    closeModals()
+  } catch {
+    // A mensagem de erro já é exposta em expenseModalError dentro do modal.
   }
 }
-
-const expenseModalUi = createModalUi('border-expense-blue/70', 'max-w-xl')
 
 async function handleTripSubmit(payload: TripPayloadInput): Promise<void> {
   savingTrip.value = true
@@ -123,24 +152,13 @@ async function handleLogout(): Promise<void> {
       @close="closeTripModal()"
     />
 
-    <UModal
+    <ExpenseFormModal
       v-model:open="isExpenseModalOpen"
-      title="Lançar Nova Despesa"
-      description="Registro contábil de combustível, oficina e diárias"
-      :ui="expenseModalUi"
-    >
-      <template #body>
-        <div data-testid="modal-log-expense" class="space-y-4">
-          <AppRoadDivider subtle />
-          <p class="font-mono text-xs text-highway-muted">
-            Formulário completo do diário contábil será conectado no módulo 06-despesas.
-          </p>
-        </div>
-      </template>
-
-      <template #footer="{ close }">
-        <UButton label="Cancelar" color="neutral" variant="outline" @click="close" />
-      </template>
-    </UModal>
+      :editing-expense="editingExpense"
+      :default-date="defaultExpenseDate"
+      :saving="savingExpense"
+      :error-message="expenseModalError"
+      @submit="handleExpenseSubmit"
+    />
   </div>
 </template>
