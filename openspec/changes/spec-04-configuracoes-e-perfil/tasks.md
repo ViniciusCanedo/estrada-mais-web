@@ -5,9 +5,9 @@
 
 ## 2. Repository, Service e Endpoints HTTP
 
-- [ ] 2.1 Estender `server/repositories/driver.repository.ts` com `updateProfile`, `updateCredentials` e `updateTelemetryTargets` usando helper interno único sobre Drizzle ORM
-- [ ] 2.2 Implementar `server/services/settings.service.ts` (`getSettings`, `updateProfile`, `updateCredentials` com detecção de colisão `409 Conflict` e validação `scrypt` `401 Unauthorized`, e `updateTelemetryTargets` usando `toMilliKmL`/`fromMilliKmL` e `toCents`/`fromCents`)
-- [ ] 2.3 Implementar os handlers `server/api/settings/index.get.ts`, `profile.put.ts`, `credentials.put.ts` e `targets.put.ts` com `requireAuthenticatedDriverId`, validação Zod via `#shared/schemas/settings.schema` e `handleServiceError`
+- [x] 2.1 Estender `server/repositories/driver.repository.ts` com `updateProfile`, `updateCredentials` e `updateTelemetryTargets` usando helper interno único sobre Drizzle ORM
+- [x] 2.2 Implementar `server/services/settings.service.ts` (`getSettings`, `updateProfile`, `updateCredentials` com detecção de colisão `409 Conflict` e validação `scrypt` `401 Unauthorized`, e `updateTelemetryTargets` usando `toMilliKmL`/`fromMilliKmL` e `toCents`/`fromCents`)
+- [x] 2.3 Implementar os handlers `server/api/settings/index.get.ts`, `profile.put.ts`, `credentials.put.ts` e `targets.put.ts` com `requireAuthenticatedDriverId`, validação Zod via `#shared/schemas/settings.schema` e `handleServiceError`
 
 ## 3. Front-end: Composables, Componentes e Páginas
 

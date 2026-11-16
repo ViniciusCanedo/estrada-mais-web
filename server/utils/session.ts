@@ -6,7 +6,7 @@ import {
   type H3Event,
   type SessionConfig,
 } from 'h3'
-import { DomainError } from './domain-error'
+import { DomainError, handleServiceError } from './domain-error'
 
 export const SESSION_COOKIE_NAME = 'nuxt-session'
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
@@ -162,4 +162,19 @@ export async function clearDriverSession(event: H3Event): Promise<void> {
       maxAge: 0,
     },
   })
+}
+
+/**
+ * Executa um handler autenticado garantindo driverId da sessão e mapeamento centralizado de erros.
+ */
+export async function withAuthenticatedDriver<T>(
+  event: H3Event,
+  handler: (driverId: number) => Promise<T> | T,
+): Promise<T> {
+  try {
+    const driverId = await requireAuthenticatedDriverId(event)
+    return await handler(driverId)
+  } catch (error: unknown) {
+    return handleServiceError(error)
+  }
 }
