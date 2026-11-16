@@ -23,4 +23,4 @@
 - [x] 5.1 Criar `test/unit/telematics.spec.ts`, `test/unit/trip.repository.spec.ts`, `test/unit/trip.service.spec.ts` e `test/unit/trip.endpoints.spec.ts` com SQLite `:memory:` e cobertura `>= 90%`
 - [x] 5.2 Criar `test/nuxt/trip-modal.spec.ts` e `test/nuxt/trips-page.spec.ts` (e ajustar mock em `test/nuxt/layout.spec.ts`), cobrindo cálculo ao vivo, validação, filtros, ordenação e estados da página
 - [x] 5.3 Criar `test/e2e/trips.spec.ts` com motorista isolado (`createTestDriver`) validando criação, cálculo ao vivo, badge na Sidebar, filtros/ordenação, edição e exclusão com cascata nas despesas no SQLite
-- [ ] 5.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
+- [x] 5.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
