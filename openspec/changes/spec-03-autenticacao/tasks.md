@@ -28,5 +28,5 @@
 
 - [x] 6.1 Adicionar testes unitários em `test/unit/rate-limiter.spec.ts`, `test/unit/driver.repository.spec.ts`, `test/unit/password-reset.repository.spec.ts` e `test/unit/auth.service.spec.ts` (incluindo cobertura `>= 90%` em services, repositories e shared)
 - [x] 6.2 Adicionar `test/nuxt/auth-pages.spec.ts` e atualizar `test/nuxt/layout.spec.ts` e `test/nuxt/index.spec.ts` com contexto/mocks compatíveis com `auth.global.ts`
-- [ ] 6.3 Configurar `playwright.config.ts` (`NUXT_APP_SECRET` e seed), criar `test/e2e/helpers/auth.ts` e `test/e2e/auth.spec.ts` (redirect, login, logout, rate limit isolado e reset isolado) e atualizar `test/e2e/home.spec.ts` e `test/e2e/navigation.spec.ts`
+- [x] 6.3 Configurar `playwright.config.ts` (`NUXT_APP_SECRET` e seed), criar `test/e2e/helpers/auth.ts` e `test/e2e/auth.spec.ts` (redirect, login, logout, rate limit isolado e reset isolado) e atualizar `test/e2e/home.spec.ts` e `test/e2e/navigation.spec.ts`
 - [ ] 6.4 Executar `npm run format` e `npm run quality` comprovando exit code `0` em todos os gates G1–G13
