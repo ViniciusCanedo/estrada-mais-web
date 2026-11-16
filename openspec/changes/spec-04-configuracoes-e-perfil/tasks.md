@@ -1,7 +1,7 @@
 ## 1. Schemas Zod e Utilitários Compartilhados
 
-- [ ] 1.1 Criar `shared/utils/driver-profile.ts` com `computeInitials` e `formatDriverSummary` puros e isomórficos (re-exportando em `server/services/auth.service.ts` para reuso sem duplicação)
-- [ ] 1.2 Criar `shared/schemas/settings.schema.ts` com `updateDriverProfileSchema`, `updateCredentialsSchema` (normalização Zod 4 de e-mail e refinamento condicional exigindo `currentPassword` quando `newPassword` estiver preenchida), `updateTelemetryTargetsSchema`, `driverSettingsResponseSchema` e tipos inferidos em `pt-BR`
+- [x] 1.1 Criar `shared/utils/driver-profile.ts` com `computeInitials` e `formatDriverSummary` puros e isomórficos (re-exportando em `server/services/auth.service.ts` para reuso sem duplicação)
+- [x] 1.2 Criar `shared/schemas/settings.schema.ts` com `updateDriverProfileSchema`, `updateCredentialsSchema` (normalização Zod 4 de e-mail e refinamento condicional exigindo `currentPassword` quando `newPassword` estiver preenchida), `updateTelemetryTargetsSchema`, `driverSettingsResponseSchema` e tipos inferidos em `pt-BR`
 
 ## 2. Repository, Service e Endpoints HTTP
 
