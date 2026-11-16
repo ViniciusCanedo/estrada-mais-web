@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { useGlobalModals } from '~/composables/useGlobalModals'
-import { useTelemetrySync } from '~/composables/useTelemetrySync'
+import AppSidebar from '../components/layout/AppSidebar.vue'
+import AppTopBar from '../components/layout/AppTopBar.vue'
+import AppRoadDivider from '../components/ui/AppRoadDivider.vue'
+import { useGlobalModals } from '../composables/useGlobalModals'
+import { useTelemetrySync } from '../composables/useTelemetrySync'
 
 const isDev = import.meta.dev
 const { isOnline, isHealthy, lastSyncLabel, tripsCount, expensesCount } = useTelemetrySync()
@@ -29,7 +32,7 @@ function handleLogout(): void {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-asphalt-bg text-highway-fg">
-    <LayoutAppSidebar
+    <AppSidebar
       :trips-count="tripsCount"
       :expenses-count="expensesCount"
       :is-online="isOnline"
@@ -40,7 +43,7 @@ function handleLogout(): void {
     />
 
     <div class="flex h-screen flex-1 flex-col overflow-y-auto bg-asphalt-bg">
-      <LayoutAppTopBar />
+      <AppTopBar />
       <main class="flex-1 space-y-8 p-8">
         <slot />
       </main>
@@ -54,7 +57,7 @@ function handleLogout(): void {
     >
       <template #body>
         <div data-testid="modal-log-trip" class="space-y-4">
-          <UiAppRoadDivider />
+          <AppRoadDivider />
           <p class="font-mono text-xs text-highway-muted">
             Formulário completo de lançamento de viagem será conectado no módulo 05-viagens.
           </p>
@@ -74,7 +77,7 @@ function handleLogout(): void {
     >
       <template #body>
         <div data-testid="modal-log-expense" class="space-y-4">
-          <UiAppRoadDivider subtle />
+          <AppRoadDivider subtle />
           <p class="font-mono text-xs text-highway-muted">
             Formulário completo do diário contábil será conectado no módulo 06-despesas.
           </p>

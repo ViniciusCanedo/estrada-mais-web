@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
-import { useGlobalModals } from '~/composables/useGlobalModals'
+import AppModulePlaceholder from '../components/ui/AppModulePlaceholder.vue'
+import { useCompetencePeriod } from '../composables/useCompetencePeriod'
+import { useGlobalModals } from '../composables/useGlobalModals'
 
 const { formattedMonthLabel } = useCompetencePeriod()
 const { openExpenseModal } = useGlobalModals()
@@ -8,7 +9,7 @@ const { openExpenseModal } = useGlobalModals()
 
 <template>
   <div data-testid="screen-expenses">
-    <UiAppModulePlaceholder
+    <AppModulePlaceholder
       eyebrow="DIÁRIO CONTÁBIL OPERACIONAL"
       title="Despesas Operacionais"
       description="Ledger completo de diesel, pedágios, borracharia, manutenção e alimentação será implementado na spec 06-despesas."
@@ -23,6 +24,6 @@ const { openExpenseModal } = useGlobalModals()
           @click="openExpenseModal()"
         />
       </template>
-    </UiAppModulePlaceholder>
+    </AppModulePlaceholder>
   </div>
 </template>

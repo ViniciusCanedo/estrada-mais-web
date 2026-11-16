@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import ButtonMatrixSection from '../components/design-system/ButtonMatrixSection.vue'
+import ColorPaletteSection from '../components/design-system/ColorPaletteSection.vue'
+import FormInputsSection from '../components/design-system/FormInputsSection.vue'
+import TypographySection from '../components/design-system/TypographySection.vue'
+
 definePageMeta({
   middleware: () => {
     if (!import.meta.dev) {
@@ -28,9 +33,9 @@ useHead({
       </p>
     </div>
 
-    <DesignSystemColorPaletteSection />
-    <DesignSystemTypographySection />
-    <DesignSystemFormInputsSection />
-    <DesignSystemButtonMatrixSection />
+    <ColorPaletteSection />
+    <TypographySection />
+    <FormInputsSection />
+    <ButtonMatrixSection />
   </div>
 </template>

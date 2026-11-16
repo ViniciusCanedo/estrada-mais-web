@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
-import { useGlobalModals } from '~/composables/useGlobalModals'
+import AppModulePlaceholder from '../components/ui/AppModulePlaceholder.vue'
+import { useCompetencePeriod } from '../composables/useCompetencePeriod'
+import { useGlobalModals } from '../composables/useGlobalModals'
 
 const { formattedMonthLabel } = useCompetencePeriod()
 const { openTripModal } = useGlobalModals()
@@ -8,7 +9,7 @@ const { openTripModal } = useGlobalModals()
 
 <template>
   <div data-testid="screen-trips">
-    <UiAppModulePlaceholder
+    <AppModulePlaceholder
       eyebrow="HISTÓRICO DE VIAGENS &amp; TELEMETRIA"
       title="Viagens Registradas"
       description="Gestão completa de rotas, odômetros, consumo médio em km/L e fretes será implementada na spec 05-viagens."
@@ -23,6 +24,6 @@ const { openTripModal } = useGlobalModals()
           @click="openTripModal()"
         />
       </template>
-    </UiAppModulePlaceholder>
+    </AppModulePlaceholder>
   </div>
 </template>
