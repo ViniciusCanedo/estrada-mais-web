@@ -1,13 +1,25 @@
 import type { NuxtError } from '#app'
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AppRoot from '~/app.vue'
+import { useAuthSession } from '~/composables/useAuthSession'
 import ErrorPage from '~/error.vue'
 import DefaultLayout from '~/layouts/default.vue'
 import IndexPage from '~/pages/index.vue'
 
 let shouldFailHealth = false
+
+const MOCK_SESSION_USER = {
+  id: 1,
+  name: 'Valdir Silveira',
+  email: 'valdir.silveira.truck@estrada.com.br',
+  initials: 'VS',
+  vehicleSummary: 'Scania R450 • 6x2',
+}
+
+registerEndpoint('/api/auth/me', () => ({ data: MOCK_SESSION_USER }))
+registerEndpoint('/api/auth/logout', () => ({ success: true }))
 
 registerEndpoint('/api/health', () => {
   if (shouldFailHealth) {
@@ -21,6 +33,12 @@ registerEndpoint('/api/health', () => {
 })
 
 describe('Página Inicial e Componentes Globais (Nuxt Runtime)', () => {
+  beforeEach(() => {
+    const auth = useAuthSession()
+    auth.user.value = { ...MOCK_SESSION_USER }
+    auth.hasLoadedSession.value = true
+  })
+
   it('renderiza o status de saúde da plataforma e executa verificação manual via $fetch', async () => {
     shouldFailHealth = false
     const wrapper = await mountSuspended(IndexPage)

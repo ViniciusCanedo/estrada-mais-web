@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AppSidebar from '~/components/layout/AppSidebar.vue'
 import AppTopBar from '~/components/layout/AppTopBar.vue'
 import TelemetrySyncBadge from '~/components/layout/TelemetrySyncBadge.vue'
+import { useAuthSession } from '~/composables/useAuthSession'
 import { useCompetencePeriod } from '~/composables/useCompetencePeriod'
 import { useGlobalModals } from '~/composables/useGlobalModals'
 import DefaultLayout from '~/layouts/default.vue'
@@ -15,6 +16,17 @@ import TripsPage from '~/pages/trips.vue'
 let healthFailure = false
 let mockTripsCount = 18
 let mockExpensesCount = 42
+
+const MOCK_SESSION_USER = {
+  id: 1,
+  name: 'Valdir Silveira',
+  email: 'valdir.silveira.truck@estrada.com.br',
+  initials: 'VS',
+  vehicleSummary: 'Scania R450 • 6x2',
+}
+
+registerEndpoint('/api/auth/me', () => ({ data: MOCK_SESSION_USER }))
+registerEndpoint('/api/auth/logout', () => ({ success: true }))
 
 registerEndpoint('/api/health', () => {
   if (healthFailure) {
@@ -38,6 +50,9 @@ describe('Layout Night Highway, Navegação e Catálogo Design System', () => {
     mockExpensesCount = 42
     useCompetencePeriod().setMonth('2026-09')
     useGlobalModals().closeModals()
+    const auth = useAuthSession()
+    auth.user.value = { ...MOCK_SESSION_USER }
+    auth.hasLoadedSession.value = true
   })
 
   it('deve exibir SYNC OK e OFFLINE / ERRO SYNC corretamente no TelemetrySyncBadge', async () => {
@@ -180,7 +195,9 @@ describe('Layout Night Highway, Navegação e Catálogo Design System', () => {
     expect(useGlobalModals().isExpenseModalOpen.value).toBe(true)
 
     await layoutWrapper.find('[data-testid="logout-btn"]').trigger('click')
+    await flushPromises()
     expect(useGlobalModals().isExpenseModalOpen.value).toBe(false)
+    expect(useAuthSession().user.value).toBeNull()
 
     layoutWrapper.unmount()
   })
