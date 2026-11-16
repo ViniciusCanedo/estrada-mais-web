@@ -18,8 +18,8 @@
 
 ## 4. Erros de Domínio e Mapeamento HTTP
 
-- [ ] 4.1 Criar `server/utils/domain-error.ts` exportando `DomainError` com `code: DomainErrorCode` e mapeamento único dos 7 códigos (`VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `RATE_LIMITED`, `SERVICE_UNAVAILABLE`) para HTTP status e `statusMessage` ASCII curto
-- [ ] 4.2 Implementar `handleServiceError(error: unknown): never` em `server/utils/domain-error.ts` usando `createError` e `isError` de `'h3'`, preservando `H3Error` e retornando HTTP `500` genérico para erros desconhecidos sem vazar detalhes internos
+- [x] 4.1 Criar `server/utils/domain-error.ts` exportando `DomainError` com `code: DomainErrorCode` e mapeamento único dos 7 códigos (`VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `RATE_LIMITED`, `SERVICE_UNAVAILABLE`) para HTTP status e `statusMessage` ASCII curto
+- [x] 4.2 Implementar `handleServiceError(error: unknown): never` em `server/utils/domain-error.ts` usando `createError` e `isError` de `'h3'`, preservando `H3Error` e retornando HTTP `500` genérico para erros desconhecidos sem vazar detalhes internos
 
 ## 5. Testes Unitários e Validação de Qualidade
 
