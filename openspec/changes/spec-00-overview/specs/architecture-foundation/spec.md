@@ -9,10 +9,10 @@ O repositório SHALL manter rastreados pelo Git os diretórios `docs/`, `.agent/
 - **WHEN** `.gitignore` é atualizado removendo `docs/` e `estrada-desktop.html` e adicionando `.worktrees` e padrões SQLite
 - **THEN** `git status` permite rastrear `docs/raw_specs/`, `.agent/`, `openspec/` e `estrada-desktop.html` enquanto ignora `.worktrees/` e arquivos `*.db*` / `*.sqlite*`
 
-#### Scenario: Worktrees isoladas das ferramentas de verificação estática
+#### Scenario: Worktrees isoladas das ferramentas de verificação estática e do Nuxt
 
-- **WHEN** os scripts de formatação, lint e detecção de segredos são executados na raiz do workspace
-- **THEN** `.prettierignore` (incluindo `.worktrees` e `estrada-desktop.html` para preservar o mockup original), `.secretlintignore` e `eslint.config.mjs` ignoram `.worktrees` sem alterar nenhuma regra, threshold ou lista de código autoral
+- **WHEN** os scripts de formatação, lint, typecheck e detecção de segredos são executados na worktree
+- **THEN** `.prettierignore` (incluindo `.worktrees` e `estrada-desktop.html` para preservar o mockup original), `.secretlintignore` e `eslint.config.mjs` ignoram `.worktrees` sem alterar nenhuma regra, threshold ou lista de código autoral, e `nuxt.config.ts` fixa `workspaceDir: '.'` para impedir resolução para o repositório pai
 
 #### Scenario: Contexto do OpenSpec configurado para o Estrada+
 
