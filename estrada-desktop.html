@@ -1,0 +1,1783 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estrada+ | Telemetria & Controle de Custos para Motoristas Autônomos</title>
+  
+  <!-- Fonts: Oswald (Display), Inter (Body), JetBrains Mono (Telematics/Numbers) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            asphalt: {
+              bg: '#141416',
+              surface: '#1d1d20',
+              surfaceLight: '#252529',
+              border: '#2d2d30',
+              borderLight: '#3f3f46',
+            },
+            amber: {
+              DEFAULT: '#ffb400',
+              glow: 'rgba(255, 180, 0, 0.22)',
+              hover: '#e6a200',
+              dark: '#996c00',
+            },
+            expense: {
+              blue: '#7aa8ff',
+              blueGlow: 'rgba(122, 168, 255, 0.18)',
+              blueDark: '#4173d6',
+            },
+            highway: {
+              fg: '#f3f4f6',
+              muted: '#9ca3af',
+              mutedDark: '#6b7280',
+              green: '#22c55e',
+              red: '#ef4444',
+            }
+          },
+          fontFamily: {
+            display: ['Oswald', 'sans-serif'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg: oklch(0.14 0.005 285);
+      --surface: oklch(0.18 0.008 285);
+      --fg: oklch(0.96 0.01 285);
+      --muted: oklch(0.70 0.01 285);
+      --border: oklch(0.26 0.008 285);
+      --accent: oklch(0.79 0.19 80);
+      --expense-blue: oklch(0.72 0.16 260);
+
+      --font-display: 'Oswald', sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Highway dashed road markings pattern */
+    .road-divider {
+      background-image: repeating-linear-gradient(
+        90deg,
+        #ffb400 0,
+        #ffb400 16px,
+        transparent 16px,
+        transparent 32px
+      );
+      height: 2px;
+      opacity: 0.65;
+    }
+
+    .road-divider-subtle {
+      border-bottom: 1px dashed #3f3f46;
+    }
+
+    /* Custom scrollbar for high-density tables */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #141416;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2d2d30;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+
+    /* Amber focus ring */
+    .focus-ring:focus-visible {
+      outline: 2px solid #ffb400;
+      outline-offset: 2px;
+    }
+
+    /* Pulse animation for telemetry sync */
+    @keyframes radar-pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 0.2; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .radar-indicator {
+      animation: radar-pulse 2.2s infinite ease-in-out;
+    }
+
+    /* Screen view transitions */
+    .screen-view {
+      display: none;
+    }
+    .screen-view.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-asphalt-bg text-highway-fg selection:bg-amber selection:text-asphalt-bg">
+
+  <!-- Main Desktop Layout (~1440px grid) -->
+  <div class="flex h-screen overflow-hidden" data-od-id="app-root">
+
+    <!-- ================================================================= -->
+    <!-- PERSISTENT LEFT SIDEBAR -->
+    <!-- ================================================================= -->
+    <aside class="w-64 flex-shrink-0 bg-asphalt-surface border-r border-asphalt-border flex flex-col justify-between select-none z-20" data-od-id="sidebar-nav">
+      <div>
+        <!-- Brand Header -->
+        <div class="p-5 border-b border-asphalt-border">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded bg-asphalt-bg border border-amber/40 flex items-center justify-center shadow-inner relative overflow-hidden">
+              <!-- Truck silhouette & highway line icon -->
+              <svg class="w-6 h-6 text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+              <div class="absolute bottom-0 inset-x-0 h-0.5 bg-amber"></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-display text-2xl tracking-wider font-bold text-white uppercase">ESTRADA</span>
+                <span class="font-display text-2xl font-bold text-amber">+</span>
+              </div>
+              <p class="text-[10px] uppercase font-mono tracking-widest text-highway-muted">Owner-Operator Telematics</p>
+            </div>
+          </div>
+          <!-- Road accent dash -->
+          <div class="road-divider mt-4"></div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="p-3 space-y-1" data-od-id="sidebar-menu">
+          <!-- Dashboard Button -->
+          <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded text-sm font-medium transition-all text-white bg-asphalt-bg border-l-2 border-amber shadow-sm">
+            <svg class="w-4 h-4 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 12a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z" />
+            </svg>
+            <span class="font-medium tracking-wide">Painel Principal</span>
+          </button>
+
+          <!-- Trips Button -->
+          <button onclick="switchScreen('trips')" id="nav-trips" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded text-sm font-medium transition-all text-highway-muted hover:text-white hover:bg-asphalt-bg/60 border-l-2 border-transparent">
+            <div class="flex items-center gap-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span>Viagens (Trips)</span>
+            </div>
+            <span class="font-mono text-xs px-1.5 py-0.5 rounded bg-asphalt-surfaceLight text-highway-muted border border-asphalt-border">18</span>
+          </button>
+
+          <!-- Expenses Button -->
+          <button onclick="switchScreen('expenses')" id="nav-expenses" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded text-sm font-medium transition-all text-highway-muted hover:text-white hover:bg-asphalt-bg/60 border-l-2 border-transparent">
+            <div class="flex items-center gap-3">
+              <svg class="w-4 h-4 text-expense-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Despesas (Ledger)</span>
+            </div>
+            <span class="font-mono text-xs px-1.5 py-0.5 rounded bg-expense-blue/10 text-expense-blue border border-expense-blue/30">42</span>
+          </button>
+
+          <!-- Design System Button -->
+          <button onclick="switchScreen('design-system')" id="nav-design-system" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded text-sm font-medium transition-all text-highway-muted hover:text-white hover:bg-asphalt-bg/60 border-l-2 border-transparent">
+            <svg class="w-4 h-4 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+            <span class="flex items-center gap-1.5">
+              <span>Sistema de Design</span>
+              <span class="text-[10px] bg-amber/20 text-amber font-mono px-1 rounded">SPEC</span>
+            </span>
+          </button>
+
+          <!-- Settings Button -->
+          <button onclick="switchScreen('settings')" id="nav-settings" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded text-sm font-medium transition-all text-highway-muted hover:text-white hover:bg-asphalt-bg/60 border-l-2 border-transparent">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Configurações</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Bottom: Telemetry Sync + Driver Profile -->
+      <div class="p-4 border-t border-asphalt-border bg-asphalt-bg/40 space-y-3">
+        <!-- Telemetry Sync Status Badge -->
+        <div class="bg-asphalt-bg border border-asphalt-border rounded p-2.5 flex items-center justify-between" data-od-id="sync-status-indicator">
+          <div class="flex items-center gap-2">
+            <div class="relative flex items-center justify-center w-2.5 h-2.5">
+              <span class="radar-indicator absolute w-3.5 h-3.5 rounded-full bg-highway-green"></span>
+              <span class="relative w-2 h-2 rounded-full bg-highway-green"></span>
+            </div>
+            <div>
+              <p class="text-[11px] font-mono font-semibold text-white tracking-wider">SYNC OK</p>
+              <p class="text-[10px] text-highway-muted">Há 2 min • 0 pendentes</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-asphalt-surface border border-asphalt-border text-highway-muted">4G LTE</span>
+        </div>
+
+        <!-- Driver Profile & Logout -->
+        <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded bg-asphalt-surfaceLight border border-asphalt-borderLight flex items-center justify-center font-display font-bold text-amber text-sm">
+              VS
+            </div>
+            <div class="truncate">
+              <p class="text-xs font-semibold text-white leading-tight truncate">Valdir Silveira</p>
+              <p class="text-[10px] font-mono text-highway-muted">Scania R450 • 6x2</p>
+            </div>
+          </div>
+          <button title="Desconectar" onclick="alert('Sessão encerrada com sucesso.')" class="p-1.5 text-highway-muted hover:text-highway-red rounded hover:bg-asphalt-surface transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ================================================================= -->
+    <!-- MAIN VIEWPORT CONTAINER -->
+    <!-- ================================================================= -->
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-asphalt-bg">
+
+      <!-- TOP BAR (Persistent across desktop viewports) -->
+      <header class="sticky top-0 z-10 bg-asphalt-surface/95 backdrop-blur border-b border-asphalt-border px-8 py-3.5 flex items-center justify-between" data-od-id="top-bar">
+        <!-- Breadcrumb & Active Scope -->
+        <div class="flex items-center gap-3">
+          <span id="breadcrumb-title" class="font-display text-xl font-bold tracking-wide uppercase text-white">PAINEL PRINCIPAL</span>
+          <span class="text-asphalt-borderLight">/</span>
+          <!-- Month Selector Component -->
+          <div class="flex items-center bg-asphalt-bg border border-asphalt-border rounded px-2.5 py-1 text-xs">
+            <button class="text-highway-muted hover:text-white px-1 font-mono transition-colors" title="Mês anterior">&larr;</button>
+            <span class="mx-2 font-mono font-semibold text-white">SETEMBRO 2026</span>
+            <button class="text-highway-muted hover:text-white px-1 font-mono transition-colors" title="Próximo mês">&rarr;</button>
+          </div>
+        </div>
+
+        <!-- Global Action Buttons Pair -->
+        <div class="flex items-center gap-3" data-od-id="top-actions">
+          <!-- Log Expense Button (Secondary Blue Outline) -->
+          <button onclick="openModal('modal-log-expense')" class="flex items-center gap-2 px-3.5 py-2 rounded text-xs font-semibold uppercase tracking-wider text-expense-blue border border-expense-blue hover:bg-expense-blue/10 active:bg-expense-blue/20 transition-all">
+            <svg class="w-3.5 h-3.5 text-expense-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>+ Lançar Despesa</span>
+          </button>
+
+          <!-- Log Trip Button (Primary Amber with Glow) -->
+          <button onclick="openModal('modal-log-trip')" class="flex items-center gap-2 px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider bg-amber text-asphalt-bg hover:bg-amber-hover active:bg-amber-dark shadow-[0_0_15px_rgba(255,180,0,0.3)] transition-all font-display">
+            <svg class="w-3.5 h-3.5 text-asphalt-bg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>+ Registrar Viagem</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT SECTIONS -->
+      <main class="flex-1 p-8 space-y-8" id="main-content">
+
+        <!-- ============================================================= -->
+        <!-- SCREEN 1: DASHBOARD / MONTHLY REPORT (Default Home View) -->
+        <!-- ============================================================= -->
+        <div id="screen-dashboard" class="screen-view active space-y-6" data-od-id="screen-dashboard">
+          
+          <!-- Top Grid: Hero Cost/KM Card + Secondary Metrics Grid -->
+          <div class="grid grid-cols-12 gap-6 items-stretch">
+            
+            <!-- Hero "Cost per KM" Card (4 cols) -->
+            <div class="col-span-12 lg:col-span-4 bg-asphalt-surface border-2 border-amber/70 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.6)]" data-od-id="hero-cost-card">
+              <!-- Corner telemetry badge -->
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-mono tracking-widest text-amber uppercase font-semibold flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber inline-block"></span>
+                  INDICADOR MESTRE
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted">META: &le; R$ 5,10</span>
+              </div>
+
+              <div class="my-6">
+                <h3 class="text-xs uppercase font-mono tracking-widest text-highway-muted mb-1">Custo Médio Operacional</h3>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-mono text-5xl font-extrabold text-white tracking-tight">R$ 4,82</span>
+                  <span class="font-mono text-lg text-highway-muted font-bold">/ km</span>
+                </div>
+                
+                <!-- Delta compare -->
+                <div class="mt-3 flex items-center gap-2">
+                  <span class="inline-flex items-center text-xs font-mono font-semibold text-highway-green bg-highway-green/10 px-2 py-0.5 rounded border border-highway-green/30">
+                    &darr; -4.1% vs Agosto
+                  </span>
+                  <span class="text-xs text-highway-muted">Economia de R$ 0,21/km</span>
+                </div>
+              </div>
+
+              <!-- Cost breakdown mini proportion bar -->
+              <div class="pt-4 border-t border-asphalt-border">
+                <div class="flex justify-between text-[11px] font-mono text-highway-muted mb-1.5">
+                  <span>Combustível 62%</span>
+                  <span>Pedágio 18%</span>
+                  <span>Manut. 20%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-asphalt-bg flex overflow-hidden">
+                  <div class="bg-amber h-full" style="width: 62%" title="Diesel: 62%"></div>
+                  <div class="bg-expense-blue h-full" style="width: 18%" title="Pedágios: 18%"></div>
+                  <div class="bg-highway-muted h-full" style="width: 20%" title="Manutenção/Borracharia: 20%"></div>
+                </div>
+              </div>
+
+              <!-- Road markings watermark on bottom edge -->
+              <div class="road-divider absolute bottom-0 inset-x-0"></div>
+            </div>
+
+            <!-- Secondary Stat Grid (8 cols) -->
+            <div class="col-span-12 lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4" data-od-id="secondary-stat-grid">
+              
+              <!-- Stat: KM Driven -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>KM RODADOS</span>
+                  <svg class="w-4 h-4 text-highway-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-white">14.280</p>
+                  <p class="text-[11px] font-mono text-highway-muted">km no mês</p>
+                </div>
+                <div class="text-[10px] text-highway-green font-mono font-semibold">+1.240 km vs ago</div>
+              </div>
+
+              <!-- Stat: Avg km/L -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>MÉDIA DIESEL</span>
+                  <svg class="w-4 h-4 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-amber">2,42</p>
+                  <p class="text-[11px] font-mono text-highway-muted">km / Litro S10</p>
+                </div>
+                <div class="text-[10px] text-highway-green font-mono font-semibold">Meta 2,35 superada</div>
+              </div>
+
+              <!-- Stat: Fuel Cost -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>COMBUSTÍVEL</span>
+                  <span class="text-[10px] bg-expense-blue/20 text-expense-blue px-1 rounded font-mono">5.900 L</span>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-white">R$ 28.320</p>
+                  <p class="text-[11px] font-mono text-highway-muted">Méd. R$ 4,80/L</p>
+                </div>
+                <div class="text-[10px] text-highway-muted font-mono">8 abastecimentos</div>
+              </div>
+
+              <!-- Stat: Tolls -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>PEDÁGIOS</span>
+                  <span class="text-[10px] bg-asphalt-bg text-highway-muted px-1 rounded font-mono">32 praças</span>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-white">R$ 3.840</p>
+                  <p class="text-[11px] font-mono text-highway-muted">R$ 0,27 / km</p>
+                </div>
+                <div class="text-[10px] text-highway-muted font-mono">Via Sem Parar / TAG</div>
+              </div>
+
+              <!-- Stat: Tire Shop -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>BORRACHARIA</span>
+                  <span class="text-[10px] text-highway-muted font-mono">2 recapes</span>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-white">R$ 1.250</p>
+                  <p class="text-[11px] font-mono text-highway-muted">Eixo tração</p>
+                </div>
+                <div class="text-[10px] text-highway-muted font-mono">Último: Rod. Pres. Dutra</div>
+              </div>
+
+              <!-- Stat: Maintenance -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>MANUTENÇÃO</span>
+                  <span class="text-[10px] text-highway-muted font-mono">Preventiva</span>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-white">R$ 4.600</p>
+                  <p class="text-[11px] font-mono text-highway-muted">Óleo + Filtros 80k</p>
+                </div>
+                <div class="text-[10px] text-highway-green font-mono">Próxima em 18.000 km</div>
+              </div>
+
+              <!-- Stat: Food / Diárias -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>ALIMENTAÇÃO</span>
+                  <span class="text-[10px] text-highway-muted font-mono">24 diárias</span>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-white">R$ 2.450</p>
+                  <p class="text-[11px] font-mono text-highway-muted">R$ 102 / dia méd.</p>
+                </div>
+                <div class="text-[10px] text-highway-muted font-mono">Dentro do orçado</div>
+              </div>
+
+              <!-- Stat: Estimated Net Margin -->
+              <div class="bg-asphalt-surface border border-asphalt-border hover:border-asphalt-borderLight rounded-lg p-4 flex flex-col justify-between transition-colors bg-gradient-to-b from-asphalt-surface to-asphalt-bg">
+                <div class="flex items-center justify-between text-highway-muted text-xs font-mono">
+                  <span>SOBRA LÍQUIDA</span>
+                  <span class="text-[10px] text-highway-green font-mono font-bold">LIVRE</span>
+                </div>
+                <div class="my-2">
+                  <p class="font-mono text-2xl font-bold text-highway-green">R$ 24.380</p>
+                  <p class="text-[11px] font-mono text-highway-muted">Fretes - Despesas</p>
+                </div>
+                <div class="text-[10px] text-highway-green font-mono font-semibold">Margem: 37,6% do bruto</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Middle Section: Trend Chart (Plain SVG Telematics Display) -->
+          <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6" data-od-id="chart-cost-trend">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-display text-lg tracking-wide uppercase text-white">Evolução do Custo por KM (Últimos 6 Meses)</h3>
+                <p class="text-xs text-highway-muted">Composição mensal: Diesel, Pedágio e Oficina (Valores em R$/km)</p>
+              </div>
+              <!-- Legend -->
+              <div class="flex items-center gap-4 text-xs font-mono">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 bg-amber rounded-sm"></span>
+                  <span class="text-white">Diesel</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 bg-expense-blue rounded-sm"></span>
+                  <span class="text-white">Pedágio</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 bg-asphalt-borderLight rounded-sm"></span>
+                  <span class="text-white">Manutenção/Outros</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-4 h-0.5 bg-highway-fg border-t-2 border-dashed border-white"></span>
+                  <span class="text-white">Total R$/km</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plain SVG Telematics Chart -->
+            <div class="w-full h-64 bg-asphalt-bg/60 border border-asphalt-border rounded p-4 relative">
+              <svg class="w-full h-full" viewBox="0 0 900 200" preserveAspectRatio="none">
+                <!-- Grid Lines -->
+                <line x1="40" y1="20" x2="880" y2="20" stroke="#2d2d30" stroke-dasharray="4 4" />
+                <line x1="40" y1="60" x2="880" y2="60" stroke="#2d2d30" stroke-dasharray="4 4" />
+                <line x1="40" y1="100" x2="880" y2="100" stroke="#2d2d30" stroke-dasharray="4 4" />
+                <line x1="40" y1="140" x2="880" y2="140" stroke="#2d2d30" stroke-dasharray="4 4" />
+                <line x1="40" y1="180" x2="880" y2="180" stroke="#3f3f46" />
+
+                <!-- Y-Axis Labels -->
+                <text x="10" y="24" fill="#6b7280" font-size="10" font-family="JetBrains Mono">R$ 6,00</text>
+                <text x="10" y="64" fill="#6b7280" font-size="10" font-family="JetBrains Mono">R$ 5,00</text>
+                <text x="10" y="104" fill="#6b7280" font-size="10" font-family="JetBrains Mono">R$ 4,00</text>
+                <text x="10" y="144" fill="#6b7280" font-size="10" font-family="JetBrains Mono">R$ 3,00</text>
+
+                <!-- Bars & Trend Points (6 Months: Abr, Mai, Jun, Jul, Ago, Set) -->
+                <!-- Month 1: Abr (Total 5.30 -> y=48) -->
+                <rect x="90" y="130" width="36" height="50" fill="#3f3f46" rx="2" />
+                <rect x="90" y="105" width="36" height="25" fill="#7aa8ff" rx="2" />
+                <rect x="90" y="55" width="36" height="50" fill="#ffb400" rx="2" />
+                <text x="108" y="195" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="JetBrains Mono">ABR</text>
+
+                <!-- Month 2: Mai (Total 5.15 -> y=54) -->
+                <rect x="230" y="135" width="36" height="45" fill="#3f3f46" rx="2" />
+                <rect x="230" y="112" width="36" height="23" fill="#7aa8ff" rx="2" />
+                <rect x="230" y="60" width="36" height="52" fill="#ffb400" rx="2" />
+                <text x="248" y="195" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="JetBrains Mono">MAI</text>
+
+                <!-- Month 3: Jun (Total 5.42 -> y=43) -->
+                <rect x="370" y="125" width="36" height="55" fill="#3f3f46" rx="2" />
+                <rect x="370" y="102" width="36" height="23" fill="#7aa8ff" rx="2" />
+                <rect x="370" y="47" width="36" height="55" fill="#ffb400" rx="2" />
+                <text x="388" y="195" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="JetBrains Mono">JUN</text>
+
+                <!-- Month 4: Jul (Total 5.10 -> y=56) -->
+                <rect x="510" y="138" width="36" height="42" fill="#3f3f46" rx="2" />
+                <rect x="510" y="114" width="36" height="24" fill="#7aa8ff" rx="2" />
+                <rect x="510" y="63" width="36" height="51" fill="#ffb400" rx="2" />
+                <text x="528" y="195" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="JetBrains Mono">JUL</text>
+
+                <!-- Month 5: Ago (Total 5.03 -> y=59) -->
+                <rect x="650" y="140" width="36" height="40" fill="#3f3f46" rx="2" />
+                <rect x="650" y="118" width="36" height="22" fill="#7aa8ff" rx="2" />
+                <rect x="650" y="68" width="36" height="50" fill="#ffb400" rx="2" />
+                <text x="668" y="195" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="JetBrains Mono">AGO</text>
+
+                <!-- Month 6: Set (Current: Total 4.82 -> y=67) -->
+                <rect x="790" y="144" width="36" height="36" fill="#3f3f46" rx="2" />
+                <rect x="790" y="122" width="36" height="22" fill="#7aa8ff" rx="2" />
+                <rect x="790" y="74" width="36" height="48" fill="#ffb400" rx="2" stroke="#ffffff" stroke-width="1.5" />
+                <text x="808" y="195" text-anchor="middle" fill="#ffb400" font-weight="bold" font-size="11" font-family="JetBrains Mono">SET (ATUAL)</text>
+
+                <!-- Trend Line Connection -->
+                <polyline
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  points="108,55 248,60 388,47 528,63 668,68 808,74"
+                />
+
+                <!-- Markers with Values on Top -->
+                <circle cx="108" cy="55" r="4" fill="#ffffff" />
+                <text x="108" y="44" text-anchor="middle" fill="#ffffff" font-size="10" font-family="JetBrains Mono" font-weight="bold">R$ 5,30</text>
+
+                <circle cx="248" cy="60" r="4" fill="#ffffff" />
+                <text x="248" y="49" text-anchor="middle" fill="#ffffff" font-size="10" font-family="JetBrains Mono">R$ 5,15</text>
+
+                <circle cx="388" cy="47" r="4" fill="#ef4444" />
+                <text x="388" y="36" text-anchor="middle" fill="#ef4444" font-size="10" font-family="JetBrains Mono">R$ 5,42</text>
+
+                <circle cx="528" cy="63" r="4" fill="#ffffff" />
+                <text x="528" y="52" text-anchor="middle" fill="#ffffff" font-size="10" font-family="JetBrains Mono">R$ 5,10</text>
+
+                <circle cx="668" cy="68" r="4" fill="#ffffff" />
+                <text x="668" y="57" text-anchor="middle" fill="#ffffff" font-size="10" font-family="JetBrains Mono">R$ 5,03</text>
+
+                <circle cx="808" cy="74" r="5" fill="#ffb400" stroke="#141416" stroke-width="2" />
+                <text x="808" y="62" text-anchor="middle" fill="#ffb400" font-size="11" font-family="JetBrains Mono" font-weight="bold">R$ 4,82</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Bottom Section: Recent Trips & Recent Expenses Side-by-Side Data Tables -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" data-od-id="dashboard-tables">
+            
+            <!-- Compact Recent Trips Table -->
+            <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-amber rounded-full"></span>
+                    <h4 class="font-display text-base tracking-wide uppercase text-white">Últimas Viagens Registradas</h4>
+                  </div>
+                  <button onclick="switchScreen('trips')" class="text-xs font-mono text-amber hover:underline flex items-center gap-1">
+                    <span>Ver todas (18)</span>
+                    <span>&rarr;</span>
+                  </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs">
+                    <thead>
+                      <tr class="text-highway-muted font-mono border-b border-asphalt-border">
+                        <th class="pb-2 font-medium">DATA</th>
+                        <th class="pb-2 font-medium">ROTA</th>
+                        <th class="pb-2 font-medium text-right">DISTÂNCIA</th>
+                        <th class="pb-2 font-medium text-right">MÉDIA</th>
+                        <th class="pb-2 font-medium text-right">DIESEL</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-asphalt-border/60 font-mono">
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">15/09</td>
+                        <td class="py-2.5 font-sans font-medium text-white">Santos, SP &rarr; Rondonópolis, MT</td>
+                        <td class="py-2.5 text-right font-bold text-white">1.740 km</td>
+                        <td class="py-2.5 text-right text-amber font-semibold">2,41 km/L</td>
+                        <td class="py-2.5 text-right text-white">R$ 3.465</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">11/09</td>
+                        <td class="py-2.5 font-sans font-medium text-white">Cascavel, PR &rarr; Paranaguá, PR</td>
+                        <td class="py-2.5 text-right font-bold text-white">520 km</td>
+                        <td class="py-2.5 text-right text-amber font-semibold">2,55 km/L</td>
+                        <td class="py-2.5 text-right text-white">R$ 980</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">07/09</td>
+                        <td class="py-2.5 font-sans font-medium text-white">Uberlândia, MG &rarr; Campinas, SP</td>
+                        <td class="py-2.5 text-right font-bold text-white">495 km</td>
+                        <td class="py-2.5 text-right text-amber font-semibold">2,38 km/L</td>
+                        <td class="py-2.5 text-right text-white">R$ 998</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">03/09</td>
+                        <td class="py-2.5 font-sans font-medium text-white">Betim, MG &rarr; Duque de Caxias, RJ</td>
+                        <td class="py-2.5 text-right font-bold text-white">440 km</td>
+                        <td class="py-2.5 text-right text-amber font-semibold">2,28 km/L</td>
+                        <td class="py-2.5 text-right text-white">R$ 925</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">01/09</td>
+                        <td class="py-2.5 font-sans font-medium text-white">Caxias do Sul, RS &rarr; Curitiba, PR</td>
+                        <td class="py-2.5 text-right font-bold text-white">560 km</td>
+                        <td class="py-2.5 text-right text-amber font-semibold">2,48 km/L</td>
+                        <td class="py-2.5 text-right text-white">R$ 1.085</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Compact Recent Expenses Table -->
+            <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-expense-blue rounded-full"></span>
+                    <h4 class="font-display text-base tracking-wide uppercase text-white">Últimas Despesas Operacionais</h4>
+                  </div>
+                  <button onclick="switchScreen('expenses')" class="text-xs font-mono text-expense-blue hover:underline flex items-center gap-1">
+                    <span>Ver todas (42)</span>
+                    <span>&rarr;</span>
+                  </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs">
+                    <thead>
+                      <tr class="text-highway-muted font-mono border-b border-asphalt-border">
+                        <th class="pb-2 font-medium">DATA</th>
+                        <th class="pb-2 font-medium">CATEGORIA</th>
+                        <th class="pb-2 font-medium">ESTABELECIMENTO</th>
+                        <th class="pb-2 font-medium text-right">VALOR</th>
+                        <th class="pb-2 font-medium text-right">RECIBO</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-asphalt-border/60 font-mono">
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">16/09</td>
+                        <td class="py-2.5">
+                          <span class="px-2 py-0.5 rounded text-[10px] bg-expense-blue/15 text-expense-blue border border-expense-blue/30 font-semibold">COMBUSTÍVEL</span>
+                        </td>
+                        <td class="py-2.5 font-sans text-white truncate max-w-[150px]">Posto Graal Rodovia dos Bandeirantes</td>
+                        <td class="py-2.5 text-right font-bold text-white">R$ 2.400,00</td>
+                        <td class="py-2.5 text-right text-highway-green">NF-e 8912</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">14/09</td>
+                        <td class="py-2.5">
+                          <span class="px-2 py-0.5 rounded text-[10px] bg-asphalt-border text-highway-fg border border-asphalt-borderLight font-semibold">BORRACHARIA</span>
+                        </td>
+                        <td class="py-2.5 font-sans text-white truncate max-w-[150px]">Borracharia do Gaúcho (Reparo válvula)</td>
+                        <td class="py-2.5 text-right font-bold text-white">R$ 180,00</td>
+                        <td class="py-2.5 text-right text-highway-muted">Recibo</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">12/09</td>
+                        <td class="py-2.5">
+                          <span class="px-2 py-0.5 rounded text-[10px] bg-amber/15 text-amber border border-amber/30 font-semibold">MANUTENÇÃO</span>
+                        </td>
+                        <td class="py-2.5 font-sans text-white truncate max-w-[150px]">Troca filtro de ar e combustível</td>
+                        <td class="py-2.5 text-right font-bold text-white">R$ 840,00</td>
+                        <td class="py-2.5 text-right text-highway-green">NF-e 4431</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">10/09</td>
+                        <td class="py-2.5">
+                          <span class="px-2 py-0.5 rounded text-[10px] bg-asphalt-surfaceLight text-highway-muted border border-asphalt-border font-semibold">ALIMENTAÇÃO</span>
+                        </td>
+                        <td class="py-2.5 font-sans text-white truncate max-w-[150px]">Restaurante da Serra (Almoço + Jantar)</td>
+                        <td class="py-2.5 text-right font-bold text-white">R$ 95,00</td>
+                        <td class="py-2.5 text-right text-highway-muted">Cupom</td>
+                      </tr>
+                      <tr class="hover:bg-asphalt-bg/60 transition-colors">
+                        <td class="py-2.5 text-highway-muted">08/09</td>
+                        <td class="py-2.5">
+                          <span class="px-2 py-0.5 rounded text-[10px] bg-expense-blue/15 text-expense-blue border border-expense-blue/30 font-semibold">PEDÁGIO</span>
+                        </td>
+                        <td class="py-2.5 font-sans text-white truncate max-w-[150px]">Autopista Litoral Sul (Recarga TAG)</td>
+                        <td class="py-2.5 text-right font-bold text-white">R$ 650,00</td>
+                        <td class="py-2.5 text-right text-highway-green">Extrato</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- SCREEN 2: TRIPS FULL DATA TABLE -->
+        <!-- ============================================================= -->
+        <div id="screen-trips" class="screen-view space-y-6" data-od-id="screen-trips">
+          
+          <!-- Filters & Actions Header -->
+          <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- Search Origin / Destination -->
+              <div class="relative">
+                <input type="text" id="tripSearchInput" onkeyup="filterTripsTable()" placeholder="Buscar origem, destino ou NF..." class="bg-asphalt-bg border border-asphalt-border rounded pl-8 pr-3 py-1.5 text-xs text-white placeholder-highway-muted/60 focus:border-amber focus-ring w-64">
+                <svg class="w-3.5 h-3.5 text-highway-muted absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+
+              <!-- Period Filter -->
+              <select class="bg-asphalt-bg border border-asphalt-border rounded px-3 py-1.5 text-xs text-white focus:border-amber focus-ring">
+                <option>Setembro 2026 (Mês Inteiro)</option>
+                <option>Agosto 2026</option>
+                <option>Últimos 90 dias</option>
+                <option>Ano 2026 Completo</option>
+              </select>
+
+              <!-- State Tag Filter -->
+              <div class="flex items-center gap-1 text-xs">
+                <span class="text-highway-muted text-[11px] font-mono mr-1">ESTADOS:</span>
+                <button class="px-2 py-0.5 rounded bg-asphalt-bg border border-amber text-amber text-[10px] font-mono">TODOS</button>
+                <button class="px-2 py-0.5 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white text-[10px] font-mono">SP</button>
+                <button class="px-2 py-0.5 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white text-[10px] font-mono">PR</button>
+                <button class="px-2 py-0.5 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white text-[10px] font-mono">MT</button>
+              </div>
+            </div>
+
+            <!-- New Trip CTA -->
+            <button onclick="openModal('modal-log-trip')" class="px-4 py-1.5 rounded bg-amber text-asphalt-bg font-display font-semibold text-xs uppercase tracking-wider hover:bg-amber-hover transition-colors shadow-sm">
+              + Nova Viagem
+            </button>
+          </div>
+
+          <!-- Full Trips Data Table -->
+          <div class="bg-asphalt-surface border border-asphalt-border rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs" id="full-trips-table">
+                <thead>
+                  <tr class="bg-asphalt-bg/80 text-highway-muted font-mono border-b border-asphalt-border uppercase text-[11px]">
+                    <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable(0, 'full-trips-table')">DATA &#x25B4;&#x25BE;</th>
+                    <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable(1, 'full-trips-table')">ROTA (ORIGEM &rarr; DESTINO)</th>
+                    <th class="py-3 px-3">NF-E</th>
+                    <th class="py-3 px-3 text-right">CARGA</th>
+                    <th class="py-3 px-3 text-right cursor-pointer hover:text-white" onclick="sortTable(4, 'full-trips-table')">KM RODADOS</th>
+                    <th class="py-3 px-3 text-right cursor-pointer hover:text-white" onclick="sortTable(5, 'full-trips-table')">KM/L</th>
+                    <th class="py-3 px-3 text-right">DIESEL (R$)</th>
+                    <th class="py-3 px-3 text-right">PEDÁGIO</th>
+                    <th class="py-3 px-3 text-right cursor-pointer hover:text-white" onclick="sortTable(8, 'full-trips-table')">CUSTO/KM</th>
+                    <th class="py-3 px-4 text-center">AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-asphalt-border/60 font-mono" id="trips-tbody">
+                  <tr class="hover:bg-asphalt-bg/80 hover:border-l-2 hover:border-amber transition-all">
+                    <td class="py-3 px-4 text-highway-muted">15/09/2026</td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Santos, SP &rarr; Rondonópolis, MT</td>
+                    <td class="py-3 px-3 text-highway-muted">#10824</td>
+                    <td class="py-3 px-3 text-right text-white">32,4 ton</td>
+                    <td class="py-3 px-3 text-right font-bold text-white">1.740 km</td>
+                    <td class="py-3 px-3 text-right text-amber font-semibold">2,41</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 3.465,00</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 412,00</td>
+                    <td class="py-3 px-3 text-right font-bold text-amber">R$ 2,22</td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 hover:border-l-2 hover:border-amber transition-all">
+                    <td class="py-3 px-4 text-highway-muted">11/09/2026</td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Cascavel, PR &rarr; Paranaguá, PR</td>
+                    <td class="py-3 px-3 text-highway-muted">#10819</td>
+                    <td class="py-3 px-3 text-right text-white">36,0 ton</td>
+                    <td class="py-3 px-3 text-right font-bold text-white">520 km</td>
+                    <td class="py-3 px-3 text-right text-amber font-semibold">2,55</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 980,00</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 184,00</td>
+                    <td class="py-3 px-3 text-right font-bold text-amber">R$ 2,23</td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 hover:border-l-2 hover:border-amber transition-all">
+                    <td class="py-3 px-4 text-highway-muted">07/09/2026</td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Uberlândia, MG &rarr; Campinas, SP</td>
+                    <td class="py-3 px-3 text-highway-muted">#10804</td>
+                    <td class="py-3 px-3 text-right text-white">28,5 ton</td>
+                    <td class="py-3 px-3 text-right font-bold text-white">495 km</td>
+                    <td class="py-3 px-3 text-right text-amber font-semibold">2,38</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 998,00</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 152,00</td>
+                    <td class="py-3 px-3 text-right font-bold text-amber">R$ 2,32</td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 hover:border-l-2 hover:border-amber transition-all">
+                    <td class="py-3 px-4 text-highway-muted">03/09/2026</td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Betim, MG &rarr; Duque de Caxias, RJ</td>
+                    <td class="py-3 px-3 text-highway-muted">#10788</td>
+                    <td class="py-3 px-3 text-right text-white">31,0 ton</td>
+                    <td class="py-3 px-3 text-right font-bold text-white">440 km</td>
+                    <td class="py-3 px-3 text-right text-amber font-semibold">2,28</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 925,00</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 138,00</td>
+                    <td class="py-3 px-3 text-right font-bold text-amber">R$ 2,41</td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 hover:border-l-2 hover:border-amber transition-all">
+                    <td class="py-3 px-4 text-highway-muted">01/09/2026</td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Caxias do Sul, RS &rarr; Curitiba, PR</td>
+                    <td class="py-3 px-3 text-highway-muted">#10775</td>
+                    <td class="py-3 px-3 text-right text-white">29,8 ton</td>
+                    <td class="py-3 px-3 text-right font-bold text-white">560 km</td>
+                    <td class="py-3 px-3 text-right text-amber font-semibold">2,48</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 1.085,00</td>
+                    <td class="py-3 px-3 text-right text-white">R$ 96,00</td>
+                    <td class="py-3 px-3 text-right font-bold text-amber">R$ 2,10</td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+                <!-- Summary Table Footer -->
+                <tfoot>
+                  <tr class="bg-asphalt-bg font-mono font-bold text-white border-t-2 border-asphalt-border">
+                    <td colspan="4" class="py-3 px-4 text-highway-muted">TOTAIS (5 VIAGENS EXIBIDAS)</td>
+                    <td class="py-3 px-3 text-right text-white">3.755 km</td>
+                    <td class="py-3 px-3 text-right text-amber">2,42 km/L</td>
+                    <td class="py-3 px-3 text-right">R$ 7.453,00</td>
+                    <td class="py-3 px-3 text-right">R$ 982,00</td>
+                    <td class="py-3 px-3 text-right text-amber">R$ 2,24</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- SCREEN 3: EXPENSES FULL LEDGER -->
+        <!-- ============================================================= -->
+        <div id="screen-expenses" class="screen-view space-y-6" data-od-id="screen-expenses">
+          
+          <!-- Category Filter Bar -->
+          <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-highway-muted text-xs font-mono mr-2">CATEGORIA:</span>
+              <button class="px-3 py-1 rounded bg-expense-blue text-asphalt-bg font-mono text-xs font-semibold">TODAS (42)</button>
+              <button class="px-3 py-1 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white font-mono text-xs">Combustível (18)</button>
+              <button class="px-3 py-1 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white font-mono text-xs">Pedágios (12)</button>
+              <button class="px-3 py-1 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white font-mono text-xs">Borracharia (4)</button>
+              <button class="px-3 py-1 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white font-mono text-xs">Manutenção (3)</button>
+              <button class="px-3 py-1 rounded bg-asphalt-bg border border-asphalt-border text-highway-muted hover:text-white font-mono text-xs">Alimentação (5)</button>
+            </div>
+
+            <!-- New Expense CTA -->
+            <button onclick="openModal('modal-log-expense')" class="px-4 py-1.5 rounded bg-expense-blue text-asphalt-bg font-display font-semibold text-xs uppercase tracking-wider hover:bg-expense-blueDark transition-colors">
+              + Nova Despesa
+            </button>
+          </div>
+
+          <!-- Expenses Full Data Table -->
+          <div class="bg-asphalt-surface border border-asphalt-border rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs" id="full-expenses-table">
+                <thead>
+                  <tr class="bg-asphalt-bg/80 text-highway-muted font-mono border-b border-asphalt-border uppercase text-[11px]">
+                    <th class="py-3 px-4">DATA</th>
+                    <th class="py-3 px-3">CATEGORIA</th>
+                    <th class="py-3 px-4">ESTABELECIMENTO / DESCRIÇÃO</th>
+                    <th class="py-3 px-3 text-right">LITROS</th>
+                    <th class="py-3 px-3 text-right">PREÇO/L</th>
+                    <th class="py-3 px-4 text-right">VALOR TOTAL</th>
+                    <th class="py-3 px-3">PAGAMENTO</th>
+                    <th class="py-3 px-3 text-center">COMPROVANTE</th>
+                    <th class="py-3 px-4 text-center">AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-asphalt-border/60 font-mono">
+                  <tr class="hover:bg-asphalt-bg/80 transition-colors">
+                    <td class="py-3 px-4 text-highway-muted">16/09/2026</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-expense-blue/20 text-expense-blue border border-expense-blue/30 font-semibold">COMBUSTÍVEL</span></td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Posto Graal Rodovia dos Bandeirantes KM 56</td>
+                    <td class="py-3 px-3 text-right text-white">500,0 L</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">R$ 4,80</td>
+                    <td class="py-3 px-4 text-right font-bold text-white">R$ 2.400,00</td>
+                    <td class="py-3 px-3 text-highway-muted">Cartão Frota</td>
+                    <td class="py-3 px-3 text-center"><span class="text-[10px] text-highway-green font-mono bg-highway-green/10 px-1.5 py-0.5 rounded border border-highway-green/20">NF-e 8912</span></td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 transition-colors">
+                    <td class="py-3 px-4 text-highway-muted">14/09/2026</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-asphalt-borderLight text-white border border-asphalt-border font-semibold">BORRACHARIA</span></td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Borracharia do Gaúcho - Reparo de válvula e calibragem</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">-</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">-</td>
+                    <td class="py-3 px-4 text-right font-bold text-white">R$ 180,00</td>
+                    <td class="py-3 px-3 text-highway-muted">PIX Direto</td>
+                    <td class="py-3 px-3 text-center"><span class="text-[10px] text-highway-muted font-mono bg-asphalt-bg px-1.5 py-0.5 rounded border border-asphalt-border">Recibo</span></td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 transition-colors">
+                    <td class="py-3 px-4 text-highway-muted">12/09/2026</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-amber/20 text-amber border border-amber/30 font-semibold">MANUTENÇÃO</span></td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Troca de filtro de óleo e combustível - Scania Ribeirão</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">-</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">-</td>
+                    <td class="py-3 px-4 text-right font-bold text-white">R$ 840,00</td>
+                    <td class="py-3 px-3 text-highway-muted">Débito Itaú</td>
+                    <td class="py-3 px-3 text-center"><span class="text-[10px] text-highway-green font-mono bg-highway-green/10 px-1.5 py-0.5 rounded border border-highway-green/20">NF-e 4431</span></td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-asphalt-bg/80 transition-colors">
+                    <td class="py-3 px-4 text-highway-muted">10/09/2026</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-asphalt-surfaceLight text-highway-muted border border-asphalt-border font-semibold">ALIMENTAÇÃO</span></td>
+                    <td class="py-3 px-4 font-sans font-medium text-white">Churrascaria & Restaurante da Serra - Jantar + Café</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">-</td>
+                    <td class="py-3 px-3 text-right text-highway-muted">-</td>
+                    <td class="py-3 px-4 text-right font-bold text-white">R$ 95,00</td>
+                    <td class="py-3 px-3 text-highway-muted">Dinheiro</td>
+                    <td class="py-3 px-3 text-center"><span class="text-[10px] text-highway-muted font-mono bg-asphalt-bg px-1.5 py-0.5 rounded border border-asphalt-border">Cupom</span></td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex items-center justify-center gap-2 text-highway-muted">
+                        <button title="Editar" class="hover:text-amber"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                        <button title="Excluir" class="hover:text-highway-red"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- SCREEN 4: DESIGN SYSTEM SPECIFICATION SCREEN -->
+        <!-- ============================================================= -->
+        <div id="screen-design-system" class="screen-view space-y-8" data-od-id="screen-design-system">
+          
+          <div class="border-b border-asphalt-border pb-4">
+            <span class="text-xs font-mono text-amber tracking-widest uppercase">ESTRADA+ DESIGN SYSTEM SPECIFICATION</span>
+            <h2 class="font-display text-3xl font-bold uppercase text-white mt-1">Componentes, Tokens & Ergonomia Telemetria</h2>
+            <p class="text-sm text-highway-muted max-w-3xl mt-1">
+              Direção de design "Night Highway" construída para visibilidade máxima sob sol a pino e trabalho noturno em cabine de caminhão pesado. Rejeita o design genérico SaaS em prol de superfícies industriais duráveis.
+            </p>
+          </div>
+
+          <!-- 1. Color Palette Tokens -->
+          <section class="space-y-4">
+            <h3 class="font-display text-xl uppercase tracking-wider text-white flex items-center gap-2">
+              <span class="w-3 h-3 bg-amber inline-block"></span>
+              1. Paleta de Cores (OKLch Tokens)
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 font-mono text-xs">
+              <!-- Token: Background -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#141416] border border-asphalt-border flex items-end p-1.5 text-[10px] text-highway-muted">#141416</div>
+                <p class="font-bold text-white">--bg</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.14 0.005 285)</p>
+                <p class="text-[10px] text-highway-muted">Asfalto Profundo</p>
+              </div>
+
+              <!-- Token: Surface -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#1d1d20] border border-asphalt-border flex items-end p-1.5 text-[10px] text-highway-muted">#1d1d20</div>
+                <p class="font-bold text-white">--surface</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.18 0.008 285)</p>
+                <p class="text-[10px] text-highway-muted">Cartão Asfalto</p>
+              </div>
+
+              <!-- Token: Border -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#2d2d30] border border-asphalt-border flex items-end p-1.5 text-[10px] text-highway-muted">#2d2d30</div>
+                <p class="font-bold text-white">--border</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.26 0.008 285)</p>
+                <p class="text-[10px] text-highway-muted">Divisor Concreto</p>
+              </div>
+
+              <!-- Token: Foreground -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#f3f4f6] text-asphalt-bg flex items-end p-1.5 text-[10px] font-bold">#f3f4f6</div>
+                <p class="font-bold text-white">--fg</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.96 0.01 285)</p>
+                <p class="text-[10px] text-highway-muted">Branco Reflexivo</p>
+              </div>
+
+              <!-- Token: Muted -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#9ca3af] text-asphalt-bg flex items-end p-1.5 text-[10px] font-bold">#9ca3af</div>
+                <p class="font-bold text-white">--muted</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.70 0.01 285)</p>
+                <p class="text-[10px] text-highway-muted">Cinza Rodoviário</p>
+              </div>
+
+              <!-- Token: Accent / Amber -->
+              <div class="bg-asphalt-surface border-2 border-amber/80 rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#ffb400] text-asphalt-bg flex items-end p-1.5 text-[10px] font-bold">#ffb400</div>
+                <p class="font-bold text-amber">--accent (Amber)</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.79 0.19 80)</p>
+                <p class="text-[10px] text-amber">Atenção / Alerta</p>
+              </div>
+
+              <!-- Token: Expense Blue -->
+              <div class="bg-asphalt-surface border border-expense-blue/60 rounded p-3 space-y-2">
+                <div class="h-16 rounded bg-[#7aa8ff] text-asphalt-bg flex items-end p-1.5 text-[10px] font-bold">#7aa8ff</div>
+                <p class="font-bold text-expense-blue">--expense-blue</p>
+                <p class="text-[10px] text-highway-muted">oklch(0.72 0.16 260)</p>
+                <p class="text-[10px] text-expense-blue">Placa Rodoviária</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. Typography Hierarchy -->
+          <section class="space-y-4">
+            <h3 class="font-display text-xl uppercase tracking-wider text-white flex items-center gap-2">
+              <span class="w-3 h-3 bg-white inline-block"></span>
+              2. Hierarquia Tipográfica
+            </h3>
+
+            <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 space-y-6">
+              <!-- Display Scale -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-mono text-highway-muted border-b border-asphalt-border pb-1">
+                  <span>DISPLAY STACK (OSWALD / CONDENSED SANS)</span>
+                  <span>Cabeçalhos, Marcadores de Título e Logotipo</span>
+                </div>
+                <h1 class="font-display text-4xl uppercase font-bold text-white tracking-wide">CUSTO OPERACIONAL TOTAL: R$ 4,82 / KM</h1>
+                <h2 class="font-display text-2xl uppercase font-semibold text-amber tracking-wide">RELATÓRIO MENSAL TELEMETRIA PESADA</h2>
+                <h3 class="font-display text-lg uppercase font-medium text-highway-muted tracking-wider">ROTA REGULAR SANTOS &rarr; RONDONÓPOLIS</h3>
+              </div>
+
+              <!-- Body Stack -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-mono text-highway-muted border-b border-asphalt-border pb-1">
+                  <span>BODY STACK (INTER / HIGH-LEGIBILITY SANS)</span>
+                  <span>Textos de interface, formulários, tabelas e avisos</span>
+                </div>
+                <p class="text-sm text-highway-fg leading-relaxed">
+                  Os valores calculados representam a média ponderada entre o consumo volumétrico de diesel S10 em praças de abastecimento conveniadas e a despesa de pedágio em eixos suspensos conforme legislação ANTT.
+                </p>
+              </div>
+
+              <!-- Monospace Instrument Stack -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-mono text-highway-muted border-b border-asphalt-border pb-1">
+                  <span>MONOSPACE INSTRUMENT STACK (JETBRAINS MONO)</span>
+                  <span>Odômetros, litragens, coordenadas, placas e moedas</span>
+                </div>
+                <div class="flex items-baseline gap-6 font-mono">
+                  <span class="text-3xl font-extrabold text-white">14.280 KM</span>
+                  <span class="text-3xl font-extrabold text-amber">2,42 KM/L</span>
+                  <span class="text-3xl font-extrabold text-expense-blue">R$ 28.320,00</span>
+                  <span class="text-xl text-highway-muted">NF-e 000.108.921</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Form Components & Unit Inputs -->
+          <section class="space-y-4">
+            <h3 class="font-display text-xl uppercase tracking-wider text-white flex items-center gap-2">
+              <span class="w-3 h-3 bg-amber inline-block"></span>
+              3. Componentes de Formulário & Estados de Entrada
+            </h3>
+
+            <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Default State with Inline Unit -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-mono text-highway-muted">Odômetro Inicial (Com Unidade)</label>
+                <div class="flex rounded border border-asphalt-border bg-asphalt-bg overflow-hidden focus-within:border-amber">
+                  <input type="text" value="784.320" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-white outline-none">
+                  <span class="bg-asphalt-surfaceLight px-3 py-2 text-xs font-mono text-highway-muted border-l border-asphalt-border flex items-center">km</span>
+                </div>
+                <p class="text-[10px] text-highway-muted">Estado Normal / Padrão</p>
+              </div>
+
+              <!-- Focused Active State with Currency -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-mono text-amber">Custo do Abastecimento (Focado)</label>
+                <div class="flex rounded border-2 border-amber bg-asphalt-bg overflow-hidden shadow-[0_0_10px_rgba(255,180,0,0.2)]">
+                  <span class="bg-asphalt-surfaceLight px-3 py-2 text-xs font-mono text-amber border-r border-asphalt-border flex items-center font-bold">R$</span>
+                  <input type="text" value="3.465,00" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-white outline-none">
+                </div>
+                <p class="text-[10px] text-amber">Estado :focus / Glow de Alta Atenção</p>
+              </div>
+
+              <!-- Error State -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-mono text-highway-red">KM Final Menor que Inicial (Erro)</label>
+                <div class="flex rounded border border-highway-red bg-asphalt-bg overflow-hidden">
+                  <input type="text" value="783.100" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-highway-red outline-none">
+                  <span class="bg-highway-red/20 px-3 py-2 text-xs font-mono text-highway-red border-l border-highway-red flex items-center">km</span>
+                </div>
+                <p class="text-[10px] text-highway-red font-mono">Erro: KM final não pode retroceder</p>
+              </div>
+
+              <!-- Select Component -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-mono text-highway-muted">Tipo de Carga (Select)</label>
+                <select class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber focus-ring outline-none">
+                  <option>Grãos / Granel Sólido (Soja/Milho)</option>
+                  <option>Carga Frigorificada / Perecível</option>
+                  <option>Carga Geral / Paletizada</option>
+                  <option>Contêiner Marítimo</option>
+                </select>
+              </div>
+
+              <!-- Disabled State -->
+              <div class="space-y-1.5 opacity-50 cursor-not-allowed">
+                <label class="block text-xs font-mono text-highway-muted">Cálculo Automático (Desabilitado)</label>
+                <div class="flex rounded border border-asphalt-border bg-asphalt-surfaceLight overflow-hidden">
+                  <input type="text" value="2,41" disabled class="w-full bg-transparent px-3 py-2 text-sm font-mono text-highway-muted cursor-not-allowed outline-none">
+                  <span class="bg-asphalt-bg px-3 py-2 text-xs font-mono text-highway-muted border-l border-asphalt-border flex items-center">km/L</span>
+                </div>
+                <p class="text-[10px] text-highway-muted">Estado Disabled</p>
+              </div>
+
+              <!-- Date Picker Input -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-mono text-highway-muted">Data da Operação (Date)</label>
+                <input type="date" value="2026-09-17" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber focus-ring outline-none font-mono">
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. Button Matrix & Actions -->
+          <section class="space-y-4">
+            <h3 class="font-display text-xl uppercase tracking-wider text-white flex items-center gap-2">
+              <span class="w-3 h-3 bg-amber inline-block"></span>
+              4. Sistema de Botões & Interação
+            </h3>
+
+            <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 flex flex-wrap items-center gap-6">
+              <!-- Primary Amber Button -->
+              <div>
+                <button class="px-5 py-2.5 rounded bg-amber text-asphalt-bg font-display font-semibold text-sm uppercase tracking-wider hover:bg-amber-hover active:bg-amber-dark shadow-[0_0_15px_rgba(255,180,0,0.3)] transition-all">
+                  Botão Primário (Amber)
+                </button>
+                <p class="text-[10px] font-mono text-highway-muted mt-1.5">Uso restrito a 1 por viewport</p>
+              </div>
+
+              <!-- Secondary Blue Outline Button -->
+              <div>
+                <button class="px-5 py-2.5 rounded border border-expense-blue text-expense-blue font-semibold text-sm uppercase tracking-wider hover:bg-expense-blue/15 active:bg-expense-blue/25 transition-all">
+                  Secundário Despesa (Blue)
+                </button>
+                <p class="text-[10px] font-mono text-highway-muted mt-1.5">Ações financeiras / Despesas</p>
+              </div>
+
+              <!-- Ghost Button -->
+              <div>
+                <button class="px-4 py-2.5 rounded border border-asphalt-border text-highway-muted hover:text-white hover:bg-asphalt-surfaceLight text-sm font-medium transition-all">
+                  Botão Neutro / Cancelar
+                </button>
+                <p class="text-[10px] font-mono text-highway-muted mt-1.5">Descartes e modais</p>
+              </div>
+
+              <!-- Destructive Button -->
+              <div>
+                <button class="px-4 py-2.5 rounded border border-highway-red/40 text-highway-red hover:bg-highway-red/10 text-sm font-medium transition-all">
+                  Ação Destrutiva
+                </button>
+                <p class="text-[10px] font-mono text-highway-muted mt-1.5">Exclusão irreversível</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- SCREEN 5: SETTINGS (Desktop Configuration) -->
+        <!-- ============================================================= -->
+        <div id="screen-settings" class="screen-view space-y-6" data-od-id="screen-settings">
+          
+          <div class="border-b border-asphalt-border pb-4">
+            <span class="text-xs font-mono text-amber tracking-widest uppercase">CONFIGURAÇÕES DO SISTEMA</span>
+            <h2 class="font-display text-3xl font-bold uppercase text-white mt-1">Perfil do Motorista & Parâmetros do Veículo</h2>
+            <p class="text-sm text-highway-muted">Gerencie dados cadastrais, credenciais de acesso e metas operacionais de telemetria.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left 2 Cols: Driver Profile & Vehicle Setup -->
+            <div class="lg:col-span-2 space-y-6">
+              
+              <!-- Driver & Vehicle Profile Card -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 space-y-4">
+                <h3 class="font-display text-lg tracking-wide uppercase text-white flex items-center gap-2">
+                  <svg class="w-4 h-4 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  Identificação do Transportador Autônomo
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-mono text-highway-muted mb-1">Nome Completo</label>
+                    <input type="text" value="Valdir Silveira" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-mono text-highway-muted mb-1">Registro RNTRC (ANTT)</label>
+                    <input type="text" value="58.912.440-TAC" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-amber outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-mono text-highway-muted mb-1">Cavalo Mecânico (Marca / Modelo)</label>
+                    <input type="text" value="Scania R450 Highline 6x2 (2021)" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-mono text-highway-muted mb-1">Placas (Cavalo / Carreta)</label>
+                    <input type="text" value="BRA-2E19 / CUR-4901" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-amber outline-none">
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-asphalt-border flex justify-end">
+                  <button class="px-4 py-2 rounded bg-asphalt-bg border border-amber text-amber font-mono text-xs hover:bg-amber hover:text-asphalt-bg transition-colors">
+                    Salvar Alterações Cadastrais
+                  </button>
+                </div>
+              </div>
+
+              <!-- Security & Credentials -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 space-y-4">
+                <h3 class="font-display text-lg tracking-wide uppercase text-white flex items-center gap-2">
+                  <svg class="w-4 h-4 text-highway-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                  Segurança & Acesso
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-mono text-highway-muted mb-1">E-mail de Acesso</label>
+                    <input type="email" value="valdir.silveira.truck@estrada.com.br" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-amber outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-mono text-highway-muted mb-1">Nova Senha</label>
+                    <input type="password" placeholder="••••••••••••" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber outline-none">
+                  </div>
+                </div>
+
+                <!-- Note on Biometrics -->
+                <div class="bg-asphalt-bg border border-asphalt-border rounded p-3 text-xs text-highway-muted flex items-start gap-2">
+                  <svg class="w-4 h-4 text-amber flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>Nota desktop: Desbloqueio biométrico (FaceID/Impressão digital) é exclusivo da versão mobile e está desativado nesta estação de mesa.</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Col: Telemetry Thresholds & Accounting Export -->
+            <div class="space-y-6">
+              
+              <!-- Telemetry Targets -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 space-y-4">
+                <h3 class="font-display text-lg tracking-wide uppercase text-white">Metas de Telemetria</h3>
+
+                <div class="space-y-3">
+                  <div>
+                    <div class="flex justify-between text-xs font-mono mb-1">
+                      <span class="text-highway-muted">Meta Consumo (km/L)</span>
+                      <span class="text-amber font-bold">2,35 km/L</span>
+                    </div>
+                    <input type="range" min="1.8" max="3.2" step="0.05" value="2.35" class="w-full accent-amber">
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-xs font-mono mb-1">
+                      <span class="text-highway-muted">Teto de Custo Operacional</span>
+                      <span class="text-white font-bold">R$ 5,10 / km</span>
+                    </div>
+                    <input type="range" min="3.5" max="7.0" step="0.1" value="5.10" class="w-full accent-amber">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Export / Accounting Integration -->
+              <div class="bg-asphalt-surface border border-asphalt-border rounded-lg p-6 space-y-4">
+                <h3 class="font-display text-lg tracking-wide uppercase text-white">Exportação Contábil</h3>
+                <p class="text-xs text-highway-muted">Exporte dados consolidados para comprovação de IRPF (Livro-Caixa / Carnê Leão do Caminhoneiro).</p>
+                
+                <div class="space-y-2">
+                  <button onclick="alert('Exportando CSV de Viagens e Despesas do Mês...')" class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded bg-asphalt-bg border border-asphalt-border hover:border-white text-xs font-mono text-white transition-colors">
+                    <svg class="w-4 h-4 text-highway-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Baixar Relatório CSV Completo</span>
+                  </button>
+                  <button onclick="alert('Gerando PDF formatado para Contador...')" class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded bg-asphalt-bg border border-asphalt-border hover:border-white text-xs font-mono text-white transition-colors">
+                    <svg class="w-4 h-4 text-expense-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <span>Imprimir Relatório Mensal PDF</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL 1: LOG TRIP (Interactive Dialog with Live Telematics Gauges) -->
+  <!-- =================================================================== -->
+  <div id="modal-log-trip" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4" data-od-id="modal-log-trip">
+    <div class="bg-asphalt-surface border-2 border-amber/70 rounded-lg w-full max-w-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-asphalt-bg border-b border-asphalt-border px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded bg-amber/20 border border-amber/40 flex items-center justify-center text-amber font-bold">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+          </div>
+          <div>
+            <h3 class="font-display text-lg font-bold tracking-wide uppercase text-white">Registrar Nova Viagem</h3>
+            <p class="text-xs text-highway-muted font-mono">Telemetria de percurso, abastecimento e pesagem</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-log-trip')" class="text-highway-muted hover:text-white p-1 text-xl font-mono">&times;</button>
+      </div>
+
+      <!-- Road divider line -->
+      <div class="road-divider"></div>
+
+      <!-- Modal Body Form -->
+      <form id="tripForm" onsubmit="handleTripSubmit(event)" class="p-6 space-y-4">
+        
+        <!-- Row 1: Date & NF Number -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Data da Viagem *</label>
+            <input type="date" required value="2026-09-17" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-amber outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Número da NF-e / Manifesto CT-e</label>
+            <input type="text" placeholder="Ex: 000.108.924" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-amber outline-none">
+          </div>
+        </div>
+
+        <!-- Row 2: Origin & Destination -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Cidade de Origem (Cidade, UF) *</label>
+            <input type="text" required placeholder="Ex: Santos, SP" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Cidade de Destino (Cidade, UF) *</label>
+            <input type="text" required placeholder="Ex: Rondonópolis, MT" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-amber outline-none">
+          </div>
+        </div>
+
+        <!-- Row 3: Cargo Weight & Toll Cost -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Peso da Carga</label>
+            <div class="flex rounded border border-asphalt-border bg-asphalt-bg overflow-hidden focus-within:border-amber">
+              <input type="number" step="0.1" placeholder="32.5" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-white outline-none">
+              <span class="bg-asphalt-surfaceLight px-3 py-2 text-xs font-mono text-highway-muted border-l border-asphalt-border">ton</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Custo de Pedágios no Percurso</label>
+            <div class="flex rounded border border-asphalt-border bg-asphalt-bg overflow-hidden focus-within:border-amber">
+              <span class="bg-asphalt-surfaceLight px-3 py-2 text-xs font-mono text-highway-muted border-r border-asphalt-border font-bold">R$</span>
+              <input type="number" step="0.01" placeholder="380.00" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-white outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Odometers (Interactive Live Calculation) -->
+        <div class="p-3 bg-asphalt-bg border border-asphalt-border rounded-lg space-y-3">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-amber font-semibold flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber"></span>
+            Leitura de Odômetro & Abastecimento (Cálculo em Tempo Real)
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-[11px] font-mono text-highway-muted mb-1">KM Inicial *</label>
+              <input type="number" id="tripKmStart" oninput="calculateTripTelematics()" required value="784320" class="w-full bg-asphalt-surface border border-asphalt-border rounded px-2.5 py-1.5 text-xs text-white font-mono focus:border-amber outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-highway-muted mb-1">KM Final *</label>
+              <input type="number" id="tripKmEnd" oninput="calculateTripTelematics()" required value="786060" class="w-full bg-asphalt-surface border border-asphalt-border rounded px-2.5 py-1.5 text-xs text-white font-mono focus:border-amber outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-highway-muted mb-1">Diesel (Litros) *</label>
+              <input type="number" step="0.1" id="tripFuelLiters" oninput="calculateTripTelematics()" required value="722" class="w-full bg-asphalt-surface border border-asphalt-border rounded px-2.5 py-1.5 text-xs text-white font-mono focus:border-amber outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-highway-muted mb-1">Custo Total Diesel</label>
+              <input type="number" step="0.01" value="3465.60" class="w-full bg-asphalt-surface border border-asphalt-border rounded px-2.5 py-1.5 text-xs text-white font-mono focus:border-amber outline-none">
+            </div>
+          </div>
+
+          <!-- Live Gauge Readout Box -->
+          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-asphalt-border/60">
+            <div class="bg-asphalt-surface p-2.5 rounded border border-asphalt-border flex items-center justify-between">
+              <span class="text-xs font-mono text-highway-muted">KM Rodados (Distância):</span>
+              <span id="calcTripDistance" class="text-base font-mono font-bold text-white">1.740 km</span>
+            </div>
+            <div class="bg-asphalt-surface p-2.5 rounded border border-amber/40 flex items-center justify-between">
+              <span class="text-xs font-mono text-highway-muted">Consumo Médio:</span>
+              <span id="calcTripEfficiency" class="text-base font-mono font-bold text-amber">2,41 km/L</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-4 border-t border-asphalt-border flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modal-log-trip')" class="px-4 py-2 rounded text-xs font-mono text-highway-muted hover:text-white border border-asphalt-border transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" class="px-6 py-2 rounded bg-amber text-asphalt-bg font-display font-semibold text-sm uppercase tracking-wider hover:bg-amber-hover transition-colors shadow-md">
+            Salvar Viagem no Painel
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL 2: LOG EXPENSE (Interactive Dialog) -->
+  <!-- =================================================================== -->
+  <div id="modal-log-expense" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4" data-od-id="modal-log-expense">
+    <div class="bg-asphalt-surface border-2 border-expense-blue/70 rounded-lg w-full max-w-xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-asphalt-bg border-b border-asphalt-border px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded bg-expense-blue/20 border border-expense-blue/40 flex items-center justify-center text-expense-blue font-bold">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-display text-lg font-bold tracking-wide uppercase text-white">Lançar Nova Despesa</h3>
+            <p class="text-xs text-highway-muted font-mono">Registro contábil de combustível, oficina e diárias</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-log-expense')" class="text-highway-muted hover:text-white p-1 text-xl font-mono">&times;</button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <form id="expenseForm" onsubmit="handleExpenseSubmit(event)" class="p-6 space-y-4">
+        
+        <!-- Category & Date -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Categoria da Despesa *</label>
+            <select required class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-expense-blue outline-none">
+              <option value="combustivel">Combustível (Diesel S10 / Arla)</option>
+              <option value="borracharia">Borracharia & Pneus</option>
+              <option value="manutencao">Manutenção Mecânica / Peças</option>
+              <option value="alimentacao">Alimentação & Pernoite</option>
+              <option value="pedagio">Pedágio / Recarga TAG</option>
+              <option value="outros">Outras Despesas</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Data *</label>
+            <input type="date" required value="2026-09-17" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-expense-blue outline-none">
+          </div>
+        </div>
+
+        <!-- Establishment / Description -->
+        <div>
+          <label class="block text-xs font-mono text-highway-muted mb-1">Estabelecimento / Descrição *</label>
+          <input type="text" required placeholder="Ex: Posto Graal KM 120 ou Borracharia do Zé" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-expense-blue outline-none">
+        </div>
+
+        <!-- Liters (Optional for fuel) & Total Value -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Litros (Se combustível)</label>
+            <div class="flex rounded border border-asphalt-border bg-asphalt-bg overflow-hidden focus-within:border-expense-blue">
+              <input type="number" step="0.1" placeholder="Ex: 350.0" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-white outline-none">
+              <span class="bg-asphalt-surfaceLight px-3 py-2 text-xs font-mono text-highway-muted border-l border-asphalt-border">L</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Valor Total Pago (R$) *</label>
+            <div class="flex rounded border-2 border-expense-blue/60 bg-asphalt-bg overflow-hidden focus-within:border-expense-blue">
+              <span class="bg-asphalt-surfaceLight px-3 py-2 text-xs font-mono text-expense-blue border-r border-asphalt-border font-bold">R$</span>
+              <input type="number" step="0.01" required placeholder="1680.00" class="w-full bg-transparent px-3 py-2 text-sm font-mono text-white outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method & Receipt Note -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Forma de Pagamento</label>
+            <select class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white focus:border-expense-blue outline-none">
+              <option>Cartão Frota (Repom / Ticket Log / Sem Parar)</option>
+              <option>Cartão de Débito</option>
+              <option>PIX Direto</option>
+              <option>Dinheiro em Espécie</option>
+              <option>Faturado / Boleto</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-highway-muted mb-1">Número do Cupom / NF-e</label>
+            <input type="text" placeholder="Ex: NF-e 99241" class="w-full bg-asphalt-bg border border-asphalt-border rounded px-3 py-2 text-sm text-white font-mono focus:border-expense-blue outline-none">
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-4 border-t border-asphalt-border flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modal-log-expense')" class="px-4 py-2 rounded text-xs font-mono text-highway-muted hover:text-white border border-asphalt-border transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" class="px-6 py-2 rounded bg-expense-blue text-asphalt-bg font-display font-semibold text-sm uppercase tracking-wider hover:bg-expense-blueDark transition-colors shadow-md">
+            Salvar Despesa
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- VANILLA JAVASCRIPT: NAVIGATION, MODALS, LIVE TELEMATICS & SORTING -->
+  <!-- =================================================================== -->
+  <script>
+    // Screen Navigation
+    function switchScreen(screenId) {
+      // Hide all screens
+      const screens = document.querySelectorAll('.screen-view');
+      screens.forEach(s => s.classList.remove('active'));
+
+      // Show target screen
+      const targetScreen = document.getElementById('screen-' + screenId);
+      if (targetScreen) {
+        targetScreen.classList.add('active');
+      }
+
+      // Update sidebar nav items styling
+      const navButtons = document.querySelectorAll('.nav-item');
+      navButtons.forEach(btn => {
+        btn.classList.remove('text-white', 'bg-asphalt-bg', 'border-amber');
+        btn.classList.add('text-highway-muted', 'border-transparent');
+      });
+
+      const activeBtn = document.getElementById('nav-' + screenId);
+      if (activeBtn) {
+        activeBtn.classList.add('text-white', 'bg-asphalt-bg', 'border-amber');
+        activeBtn.classList.remove('text-highway-muted', 'border-transparent');
+      }
+
+      // Update Top Breadcrumb
+      const breadcrumb = document.getElementById('breadcrumb-title');
+      const titles = {
+        'dashboard': 'PAINEL PRINCIPAL',
+        'trips': 'VIAGENS (HISTÓRICO COMPLETO)',
+        'expenses': 'DESPESAS OPERACIONAIS',
+        'design-system': 'SISTEMA DE DESIGN & COMPONENTES',
+        'settings': 'CONFIGURAÇÕES'
+      };
+      if (breadcrumb && titles[screenId]) {
+        breadcrumb.textContent = titles[screenId];
+      }
+
+      // Persist active view
+      localStorage.setItem('estrada_active_screen', screenId);
+    }
+
+    // Modal Triggers
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    // Close on Escape Key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal('modal-log-trip');
+        closeModal('modal-log-expense');
+      }
+    });
+
+    // Live Telematics Gauge Calculation inside Log Trip Modal
+    function calculateTripTelematics() {
+      const kmStart = parseFloat(document.getElementById('tripKmStart').value) || 0;
+      const kmEnd = parseFloat(document.getElementById('tripKmEnd').value) || 0;
+      const fuelLiters = parseFloat(document.getElementById('tripFuelLiters').value) || 0;
+
+      const distElem = document.getElementById('calcTripDistance');
+      const effElem = document.getElementById('calcTripEfficiency');
+
+      const distance = kmEnd - kmStart;
+
+      if (distance > 0) {
+        distElem.textContent = distance.toLocaleString('pt-BR') + ' km';
+        distElem.classList.remove('text-highway-red');
+        distElem.classList.add('text-white');
+
+        if (fuelLiters > 0) {
+          const efficiency = (distance / fuelLiters).toFixed(2).replace('.', ',');
+          effElem.textContent = efficiency + ' km/L';
+        } else {
+          effElem.textContent = '-- km/L';
+        }
+      } else {
+        distElem.textContent = 'Inválido (End &le; Start)';
+        distElem.classList.remove('text-white');
+        distElem.classList.add('text-highway-red');
+        effElem.textContent = '-- km/L';
+      }
+    }
+
+    // Interactive Form Submissions
+    function handleTripSubmit(e) {
+      e.preventDefault();
+      alert('Viagem registrada com sucesso! Telemetria e médias do mês atualizadas.');
+      closeModal('modal-log-trip');
+    }
+
+    function handleExpenseSubmit(e) {
+      e.preventDefault();
+      alert('Despesa operacional gravada no diário contábil.');
+      closeModal('modal-log-expense');
+    }
+
+    // Search and Filter Trips
+    function filterTripsTable() {
+      const input = document.getElementById('tripSearchInput');
+      const filter = input.value.toLowerCase();
+      const rows = document.querySelectorAll('#trips-tbody tr');
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      });
+    }
+
+    // Table Column Sorting
+    function sortTable(n, tableId) {
+      const table = document.getElementById(tableId);
+      let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      switching = true;
+      dir = "asc";
+
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+
+        for (i = 1; i < (rows.length - 2); i++) {
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+
+          if (!x || !y) continue;
+
+          let xVal = x.innerText.toLowerCase().replace('r$', '').replace('km', '').trim();
+          let yVal = y.innerText.toLowerCase().replace('r$', '').replace('km', '').trim();
+
+          let numX = parseFloat(xVal.replace(/\./g, '').replace(',', '.'));
+          let numY = parseFloat(yVal.replace(/\./g, '').replace(',', '.'));
+
+          if (!isNaN(numX) && !isNaN(numY)) {
+            if (dir == "asc" && numX > numY) {
+              shouldSwitch = true;
+              break;
+            } else if (dir == "desc" && numX < numY) {
+              shouldSwitch = true;
+              break;
+            }
+          } else {
+            if (dir == "asc" && xVal > yVal) {
+              shouldSwitch = true;
+              break;
+            } else if (dir == "desc" && xVal < yVal) {
+              shouldSwitch = true;
+              break;
+            }
+          }
+        }
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount++;
+        } else {
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
+        }
+      }
+    }
+
+    // Restore saved screen on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedScreen = localStorage.getItem('estrada_active_screen');
+      if (savedScreen) {
+        switchScreen(savedScreen);
+      }
+      calculateTripTelematics();
+    });
+  </script>
+</body>
+</html>

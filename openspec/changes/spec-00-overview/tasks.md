@@ -1,10 +1,10 @@
 ## 1. Versionamento e Configuração de Repositório / Worktrees
 
-- [ ] 1.1 Atualizar `.gitignore` removendo `docs/` e `estrada-desktop.html` e adicionando `.worktrees/`, `.worktrees/**` e artefatos SQLite (`*.db`, `*.db-wal`, `*.db-shm`, `*.sqlite`, `*.sqlite3`, `*.sqlite-wal`, `*.sqlite-shm`)
-- [ ] 1.2 Atualizar `.prettierignore` (adicionar `.worktrees`) e `.secretlintignore` (adicionar `.worktrees/**`), mantendo `estrada-desktop.html` verificado sem reformatar o mockup
-- [ ] 1.3 Adicionar `'.worktrees/**'` na lista `ignores` de `eslint.config.mjs` sem alterar nenhuma outra regra ou threshold
-- [ ] 1.4 Preencher `openspec/config.yaml` com `context` e `rules` da stack Estrada+ (Nuxt 4, TypeScript strict, @nuxt/ui v4, Tailwind CSS v4, Pinia, Drizzle ORM + SQLite `better-sqlite3`, Zod 4, Vitest, Playwright, `pt-BR`, Conventional Commits)
-- [ ] 1.5 Rastrear e commitar `docs/raw_specs/`, `.agent/`, `openspec/config.yaml` e `estrada-desktop.html`
+- [x] 1.1 Atualizar `.gitignore` removendo `docs/` e `estrada-desktop.html` e adicionando `.worktrees/`, `.worktrees/**` e artefatos SQLite (`*.db`, `*.db-wal`, `*.db-shm`, `*.sqlite`, `*.sqlite3`, `*.sqlite-wal`, `*.sqlite-shm`)
+- [x] 1.2 Atualizar `.prettierignore` (adicionar `.worktrees` e `estrada-desktop.html` para preservar o mockup intacto) e `.secretlintignore` (adicionar `.worktrees/**`)
+- [x] 1.3 Adicionar `'.worktrees/**'` na lista `ignores` de `eslint.config.mjs` sem alterar nenhuma outra regra ou threshold
+- [x] 1.4 Preencher `openspec/config.yaml` com `context` e `rules` da stack Estrada+ (Nuxt 4, TypeScript strict, @nuxt/ui v4, Tailwind CSS v4, Pinia, Drizzle ORM + SQLite `better-sqlite3`, Zod 4, Vitest, Playwright, `pt-BR`, Conventional Commits)
+- [x] 1.5 Rastrear e commitar `docs/raw_specs/`, `.agent/`, `openspec/config.yaml` e `estrada-desktop.html`
 
 ## 2. Tipos e Constantes Transversais
 

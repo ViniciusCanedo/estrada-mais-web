@@ -29,6 +29,15 @@ test-results
 coverage
 
 
-# Agents
-docs/
-estrada-desktop.html
+# Git worktrees
+.worktrees
+.worktrees/**
+
+# Local SQLite database artifacts
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm

@@ -1,0 +1,25 @@
+schema: spec-driven
+
+context: |
+  Projeto: Estrada+ — Sistema web de telemetria de percurso e controle de custos operacionais para Motoristas Autônomos de Carga Pesada (TAC / Owner-Operators).
+  Stack: Nuxt 4, Vue 3 (`<script setup lang="ts">`), TypeScript strict (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`), @nuxt/ui v4, Tailwind CSS v4 (tema Night Highway), Pinia, Drizzle ORM + SQLite (`better-sqlite3`), Zod 4 isomórfico, Vitest (`unit`, `nuxt`, `arch`), Playwright e k6.
+  Arquitetura em camadas: `app/**` (UI/SSR) e `server/api/**` -> `server/services/**` -> `server/repositories/**` -> `server/database/**`, compartilhando `shared/types/`, `shared/schemas/` e `shared/utils/` puros e isomórficos.
+  Convenções transversais:
+  - Precisão numérica por inteiros escalados (centavos, decilitros, kg, milésimos de km/L) e datas ISO-8601 (`YYYY-MM-DD`).
+  - Erros de negócio via `DomainError` mapeados centralmente por `handleServiceError`.
+  - Idioma: `pt-BR` obrigatório para textos de UI, mensagens de validação Zod, mensagens de erro de domínio, comentários explicativos ("por quê") e descrições de testes (`describe`/`it`); identificadores de código em inglês técnico (exceto enums de domínio brasileiro).
+  - Commits seguindo Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`), validados por commitlint/husky, e aprovação obrigatória em `npm run quality`.
+
+rules:
+  proposal:
+    - Manter objetivo e conciso, alinhado às especificações em `docs/raw_specs/` e à `.agents/CONSTITUTION.md`
+    - Declarar explicitamente capacidades novas/modificadas e itens fora de escopo (Non-Goals)
+  specs:
+    - Escrever requisitos normativos com SHALL/MUST e cenários testáveis no formato `#### Scenario:` (`- **WHEN**` / `- **THEN**`)
+    - Descrever contratos de dados em `pt-BR`, escalas inteiras e códigos `DomainErrorCode` aplicáveis
+  design:
+    - Respeitar estritamente as fronteiras `app/`, `server/` e `shared/` verificadas por `dependency-cruiser`
+    - Justificar decisões técnicas, alternativas consideradas e mitigações de risco
+  tasks:
+    - Quebrar em tarefas pequenas e verificáveis no formato `- [ ] X.Y Descrição`
+    - Incluir testes unitários/integração/E2E aplicáveis e validação final com `npm run quality`
