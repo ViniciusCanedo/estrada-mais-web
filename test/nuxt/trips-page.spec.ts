@@ -219,7 +219,7 @@ describe('Página /trips, Filtros e Tabela (test/nuxt/trips-page.spec.ts)', () =
       expect(hasPeriodQuery('last90days')).toBe(true)
     })
 
-    // Busca textual com debounce e estado vazio com botão Limpar filtros
+    // Busca textual com debounce, limpeza direta no input e estado vazio com CTA
     const searchInput = wrapper.find('[data-testid="trips-search-input"]')
     await searchInput.setValue('Cascavel')
     await vi.waitFor(() => {
@@ -228,6 +228,11 @@ describe('Página /trips, Filtros e Tabela (test/nuxt/trips-page.spec.ts)', () =
       expect(wrapper.find('[data-testid="trips-summary-footer"]').text()).toContain(
         'TOTAIS (1 VIAGEM EXIBIDA)',
       )
+    })
+
+    await searchInput.setValue('')
+    await vi.waitFor(() => {
+      expect(wrapper.findAll('[data-testid="trip-row"]')).toHaveLength(2)
     })
 
     // Busca sem resultados ativa estado vazio com limpeza de filtros e CTA
@@ -267,12 +272,16 @@ describe('Página /trips, Filtros e Tabela (test/nuxt/trips-page.spec.ts)', () =
 
     // Cancelar exclusão fecha modal sem chamar DELETE
     await firstRow?.find('[data-testid="delete-trip-btn"]').trigger('click')
-    await flushPromises()
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('[data-testid="cancel-delete-trip-btn"]')).not.toBeNull()
+    })
     const cancelDeleteBtn = document.body.querySelector(
       '[data-testid="cancel-delete-trip-btn"]',
-    ) as HTMLButtonElement | null
-    cancelDeleteBtn?.click()
-    await flushPromises()
+    ) as HTMLButtonElement
+    cancelDeleteBtn.click()
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('[data-testid="cancel-delete-trip-btn"]')).toBeNull()
+    })
     expect(deletedIds).toEqual([])
 
     // Falha na exclusão mantém registro; sucesso remove da lista
