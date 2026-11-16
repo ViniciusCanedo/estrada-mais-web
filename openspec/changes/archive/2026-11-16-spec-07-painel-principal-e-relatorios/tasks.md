@@ -21,4 +21,4 @@
 - [x] 4.1 Criar `test/unit/report.repository.spec.ts`, `test/unit/report.service.spec.ts` e `test/unit/report.endpoints.spec.ts` cobrindo fórmulas RN-DASH-01..06, virada de ano, mês vazio sem `NaN`, CSV BOM/injeção, endpoints HTTP e cobertura `>= 90%`
 - [x] 4.2 Criar `test/nuxt/dashboard.spec.ts` e atualizar `test/nuxt/index.spec.ts` cobrindo `HeroCostCard`, `SecondaryStatsGrid`, `CostTrendSvgChart` (real e `0 km`), `AccountingExportCard`, `reports/print.vue` e `index.vue`
 - [x] 4.3 Atualizar `test/e2e/home.spec.ts` e criar `test/e2e/dashboard-and-export.spec.ts` validando Painel Principal de Setembro 2026, troca de competência mensal, `/reports/print` e download CSV válido em `/settings`
-- [ ] 4.4 Atualizar `test/load/smoke.js` e `test/load/load.js` incluindo `/api/reports/dashboard` com thresholds da Constituição §6 e validar `npm run format` e `npm run quality` com exit code `0`
+- [x] 4.4 Atualizar `test/load/smoke.js` e `test/load/load.js` incluindo `/api/reports/dashboard` com thresholds da Constituição §6 e validar `npm run format` e `npm run quality` com exit code `0`
