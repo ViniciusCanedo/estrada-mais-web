@@ -9,7 +9,7 @@ function readProjectFile(relativePath: string): string {
 }
 
 describe('Infraestrutura Docker de Produção', () => {
-  it('deve possuir .dockerignore protegendo arquivos sensíveis e artefatos locais', () => {
+  it('deve possuir .dockerignore protegendo segredos, docs e artefatos SQLite locais', () => {
     const dockerignorePath = resolve(ROOT_DIR, '.dockerignore')
 
     expect(existsSync(dockerignorePath)).toBe(true)
@@ -19,29 +19,51 @@ describe('Infraestrutura Docker de Produção', () => {
     expect(content).toContain('.nuxt')
     expect(content).toContain('.output')
     expect(content).toContain('.env')
+    expect(content).toContain('*.db')
+    expect(content).toContain('*.db-wal')
+    expect(content).toContain('*.db-shm')
+    expect(content).toContain('*.sqlite')
+    expect(content).toContain('docs')
+    expect(content).toContain('estrada-desktop.html')
   })
 
-  it('deve definir build multi-stage com node:24-bookworm-slim, usuário não-root e healthcheck em docker/prod/Dockerfile', () => {
+  it('deve definir build multi-stage com suporte a better-sqlite3, migrations, volume /app/data e usuário não-root', () => {
     const dockerfilePath = resolve(ROOT_DIR, 'docker/prod/Dockerfile')
 
     expect(existsSync(dockerfilePath)).toBe(true)
 
     const content = readProjectFile('docker/prod/Dockerfile')
     expect(content).toContain('FROM node:24-bookworm-slim AS build')
+    expect(content).toContain('python3')
+    expect(content).toContain('make')
+    expect(content).toContain('g++')
     expect(content).toContain('FROM node:24-bookworm-slim AS runner')
+    expect(content).toContain('NUXT_DATABASE_URL=/app/data/estrada.db')
+    expect(content).toContain('mkdir -p /app/data && chown -R node:node /app/data')
+    expect(content).toContain(
+      'COPY --from=build --chown=node:node /app/server/database/migrations ./server/database/migrations',
+    )
+    expect(content).toContain('VOLUME ["/app/data"]')
     expect(content).toContain('USER node')
     expect(content).toContain('http://localhost:3000/api/health')
     expect(content).toContain('CMD ["node", ".output/server/index.mjs"]')
   })
 
-  it('deve configurar o serviço de produção em docker-compose.prod.yml apontando para docker/prod/Dockerfile', () => {
+  it('deve configurar docker-compose.prod.yml com volume persistente SQLite e variáveis obrigatórias', () => {
     const composePath = resolve(ROOT_DIR, 'docker-compose.prod.yml')
 
     expect(existsSync(composePath)).toBe(true)
 
     const content = readProjectFile('docker-compose.prod.yml')
-    expect(content).toContain('image:')
+    expect(content).toContain('image: sistemastvem/estrada-mais-web:latest')
+    expect(content).toContain('dockerfile: docker/prod/Dockerfile')
     expect(content).toContain('NODE_ENV: production')
+    expect(content).toContain('NUXT_DATABASE_URL:')
+    expect(content).toContain('NUXT_APP_SECRET:')
+    expect(content).toContain('NUXT_PUBLIC_APP_URL:')
+    expect(content).toContain('NUXT_SMTP_HOST:')
+    expect(content).toContain('estrada_sqlite_data:/app/data')
+    expect(content).toContain('volumes:')
     expect(content).toContain('http://localhost:3000/api/health')
     expect(content).toContain('restart: unless-stopped')
   })
