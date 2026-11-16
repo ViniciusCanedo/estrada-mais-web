@@ -8,6 +8,7 @@ import {
 } from '../../app/composables/useCompetencePeriod'
 import { formatLastSyncLabel } from '../../app/composables/useTelemetrySync'
 import {
+  formatCargoTons,
   formatCurrencyFromCents,
   formatDateBr,
   formatKm,
@@ -28,6 +29,7 @@ describe('Formatadores pt-BR (app/utils/formatters.ts)', () => {
     expect(formatKm(14280)).toBe('14.280 km')
     expect(formatKm(784320)).toBe('784.320 km')
     expect(formatLitersFromDeciliters(7220)).toBe('722,0 L')
+    expect(formatCargoTons(32.4)).toBe('32,4 ton')
     expect(formatKmPerLiterFromMilli(2420)).toBe('2,42 km/L')
   })
 

@@ -56,6 +56,22 @@ registerEndpoint('/api/health', () => {
   }
 })
 
+registerEndpoint('/api/trips', () => ({
+  data: [],
+  meta: {
+    totalCount: 0,
+    availableStates: [],
+    summary: {
+      totalDistanceKm: 0,
+      weightedAverageKmL: 0,
+      totalFuelCostReais: 0,
+      totalTollCostReais: 0,
+      totalFreightValueReais: 0,
+      weightedCostPerKmReais: 0,
+    },
+  },
+}))
+
 describe('Layout Night Highway, Navegação e Catálogo Design System', () => {
   beforeEach(() => {
     healthFailure = false
@@ -226,7 +242,7 @@ describe('Layout Night Highway, Navegação e Catálogo Design System', () => {
 
     const tripsWrapper = await mountSuspended(TripsPage)
     expect(tripsWrapper.text()).toContain('Viagens Registradas')
-    await tripsWrapper.find('button').trigger('click')
+    await tripsWrapper.find('[data-testid="new-trip-btn"]').trigger('click')
     expect(useGlobalModals().isTripModalOpen.value).toBe(true)
 
     const expensesWrapper = await mountSuspended(ExpensesPage)
