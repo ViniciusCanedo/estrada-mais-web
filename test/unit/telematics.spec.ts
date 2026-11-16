@@ -250,6 +250,17 @@ describe('Schemas Zod de Viagens (shared/schemas/trip.schema)', () => {
     })
     expect(invalidCalendar.success).toBe(false)
 
+    const invalidDateFormat = tripPayloadSchema.safeParse({
+      tripDate: '15/09/2026',
+      origin: 'Santos, SP',
+      destination: 'Rondonópolis, MT',
+      kmStart: 100,
+      kmEnd: 200,
+      fuelLiters: 50,
+      fuelCostReais: 300,
+    })
+    expect(invalidDateFormat.success).toBe(false)
+
     const invalidUf = tripPayloadSchema.safeParse({
       tripDate: '2026-09-15',
       origin: 'Santos, XX',

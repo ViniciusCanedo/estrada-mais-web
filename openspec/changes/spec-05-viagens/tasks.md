@@ -5,8 +5,8 @@
 
 ## 2. Repository e Service Transacional
 
-- [ ] 2.1 Implementar `server/repositories/trip.repository.ts` (`findManyByFilter`, `findByIdAndDriver`, `listDistinctStates`, `createWithLinkedExpenses`, `updateWithLinkedExpenses`, `deleteByIdAndDriver`) usando transações Drizzle síncronas sem duplicatas em `expenses`
-- [ ] 2.2 Implementar `server/services/trip.service.ts` (`listTrips`, `createTrip`, `updateTrip`, `deleteTrip`) com resolução de período (`month`, `last90days`, `year`), conversões via `shared/utils/units.ts`, despesas vinculadas e `DomainError('NOT_FOUND', ...)`
+- [x] 2.1 Implementar `server/repositories/trip.repository.ts` (`findManyByFilter`, `findByIdAndDriver`, `listDistinctStates`, `createWithLinkedExpenses`, `updateWithLinkedExpenses`, `deleteByIdAndDriver`) usando transações Drizzle síncronas sem duplicatas em `expenses`
+- [x] 2.2 Implementar `server/services/trip.service.ts` (`listTrips`, `createTrip`, `updateTrip`, `deleteTrip`) com resolução de período (`month`, `last90days`, `year`), conversões via `shared/utils/units.ts`, despesas vinculadas e `DomainError('NOT_FOUND', ...)`
 
 ## 3. Endpoints HTTP (`/api/trips`)
 
