@@ -27,6 +27,22 @@ const MOCK_SESSION_USER = {
 
 registerEndpoint('/api/auth/me', () => ({ data: MOCK_SESSION_USER }))
 registerEndpoint('/api/auth/logout', () => ({ success: true }))
+registerEndpoint('/api/expenses', () => ({
+  data: [],
+  meta: {
+    totalCount: 0,
+    totalAmountReais: 0,
+    countsByCategory: {
+      todas: 0,
+      combustivel: 0,
+      pedagio: 0,
+      borracharia: 0,
+      manutencao: 0,
+      alimentacao: 0,
+      outros: 0,
+    },
+  },
+}))
 registerEndpoint('/api/settings', () => ({
   data: {
     id: 1,
@@ -231,7 +247,7 @@ describe('Layout Night Highway, Navegação e Catálogo Design System', () => {
 
     const expensesWrapper = await mountSuspended(ExpensesPage)
     expect(expensesWrapper.text()).toContain('Despesas Operacionais')
-    await expensesWrapper.find('button').trigger('click')
+    await expensesWrapper.find('[data-testid="expenses-new-btn"]').trigger('click')
     expect(useGlobalModals().isExpenseModalOpen.value).toBe(true)
 
     const settingsWrapper = await mountSuspended(SettingsPage)
