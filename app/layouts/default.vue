@@ -1,16 +1,33 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import type { TripPayloadInput } from '#shared/schemas/trip.schema'
 import AppSidebar from '../components/layout/AppSidebar.vue'
 import AppTopBar from '../components/layout/AppTopBar.vue'
+import TripFormModal from '../components/trips/TripFormModal.vue'
 import AppRoadDivider from '../components/ui/AppRoadDivider.vue'
-import { useAuthSession } from '../composables/useAuthSession'
+import { extractAuthErrorMessage, useAuthSession } from '../composables/useAuthSession'
+import { useCompetencePeriod } from '../composables/useCompetencePeriod'
 import { useGlobalModals } from '../composables/useGlobalModals'
 import { useTelemetrySync } from '../composables/useTelemetrySync'
+import { useTripModalState } from '../composables/useTrips'
 
 const isDev = import.meta.dev
+const toast = useToast()
+const { selectedMonth } = useCompetencePeriod()
 const { isOnline, isHealthy, lastSyncLabel, tripsCount, expensesCount } = useTelemetrySync()
 const { isTripModalOpen, isExpenseModalOpen, closeModals } = useGlobalModals()
+const { editingTrip, closeTripModal, createTrip, updateTrip } = useTripModalState()
 const { user, logout } = useAuthSession()
+
+const savingTrip = ref(false)
+const tripModalError = ref<string | null>(null)
+
+watch(isTripModalOpen, (isOpen) => {
+  if (!isOpen) {
+    editingTrip.value = null
+    tripModalError.value = null
+  }
+})
 
 const driverProfile = computed(() =>
   user.value
@@ -38,8 +55,36 @@ function createModalUi(borderClass: string, maxWidthClass: string) {
   }
 }
 
-const tripModalUi = createModalUi('border-amber-default/70', 'max-w-2xl')
 const expenseModalUi = createModalUi('border-expense-blue/70', 'max-w-xl')
+
+async function handleTripSubmit(payload: TripPayloadInput): Promise<void> {
+  savingTrip.value = true
+  tripModalError.value = null
+  const currentEditing = editingTrip.value
+
+  try {
+    if (currentEditing) {
+      await updateTrip(currentEditing.id, payload)
+      toast.add({
+        title: 'Viagem atualizada com sucesso.',
+        color: 'success',
+        icon: 'i-lucide-check-circle-2',
+      })
+    } else {
+      await createTrip(payload)
+      toast.add({
+        title: 'Viagem registrada com sucesso.',
+        color: 'success',
+        icon: 'i-lucide-check-circle-2',
+      })
+    }
+    closeTripModal()
+  } catch (caught: unknown) {
+    tripModalError.value = extractAuthErrorMessage(caught, 'Não foi possível salvar a viagem.')
+  } finally {
+    savingTrip.value = false
+  }
+}
 
 async function handleLogout(): Promise<void> {
   closeModals()
@@ -68,25 +113,15 @@ async function handleLogout(): Promise<void> {
       </main>
     </div>
 
-    <UModal
+    <TripFormModal
       v-model:open="isTripModalOpen"
-      title="Registrar Nova Viagem"
-      description="Telemetria de percurso, abastecimento e pesagem"
-      :ui="tripModalUi"
-    >
-      <template #body>
-        <div data-testid="modal-log-trip" class="space-y-4">
-          <AppRoadDivider />
-          <p class="font-mono text-xs text-highway-muted">
-            Formulário completo de lançamento de viagem será conectado no módulo 05-viagens.
-          </p>
-        </div>
-      </template>
-
-      <template #footer="{ close }">
-        <UButton label="Cancelar" color="neutral" variant="outline" @click="close" />
-      </template>
-    </UModal>
+      :editing-trip="editingTrip"
+      :default-month="selectedMonth"
+      :saving="savingTrip"
+      :error-message="tripModalError"
+      @submit="handleTripSubmit"
+      @close="closeTripModal()"
+    />
 
     <UModal
       v-model:open="isExpenseModalOpen"
