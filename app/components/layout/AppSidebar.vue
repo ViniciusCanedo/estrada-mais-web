@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { SessionUser } from '#shared/schemas/auth.schema'
 import TelemetrySyncBadge from './TelemetrySyncBadge.vue'
 import AppRoadDivider from '../ui/AppRoadDivider.vue'
+
+type SidebarDriverProfile = Pick<SessionUser, 'name' | 'vehicleSummary' | 'initials'>
 
 const props = withDefaults(
   defineProps<{
@@ -11,13 +14,15 @@ const props = withDefaults(
     isHealthy: boolean
     lastSyncLabel: string
     isDev?: boolean
-    driverName?: string
-    vehicleSummary?: string
+    driver?: SidebarDriverProfile
   }>(),
   {
     isDev: () => import.meta.dev,
-    driverName: 'Valdir Silveira',
-    vehicleSummary: 'Scania R450 • 6x2',
+    driver: () => ({
+      name: 'Valdir Silveira',
+      vehicleSummary: 'Scania R450 • 6x2',
+      initials: 'VS',
+    }),
   },
 )
 
@@ -27,13 +32,6 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const showDesignSystem = computed(() => props.isDev ?? import.meta.dev)
-
-const driverInitials = computed(() => {
-  const parts = props.driverName.trim().split(/\s+/).filter(Boolean)
-  const first = parts[0]?.[0] ?? 'E'
-  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : ''
-  return `${first}${last}`.toUpperCase()
-})
 
 interface SidebarNavItem {
   to: string
@@ -187,16 +185,23 @@ function isActiveRoute(path: string): boolean {
       <div class="flex items-center justify-between pt-1">
         <div class="flex min-w-0 items-center gap-2.5">
           <div
+            data-testid="sidebar-driver-initials"
             class="flex size-8 shrink-0 items-center justify-center rounded-sm border border-asphalt-border-light bg-asphalt-surface-light font-display text-sm font-bold text-amber-default"
           >
-            {{ driverInitials }}
+            {{ driver.initials }}
           </div>
           <div class="truncate">
-            <p class="truncate text-xs/tight font-semibold text-white">
-              {{ driverName }}
+            <p
+              data-testid="sidebar-driver-name"
+              class="truncate text-xs/tight font-semibold text-white"
+            >
+              {{ driver.name }}
             </p>
-            <p class="truncate font-mono text-[10px] text-highway-muted">
-              {{ vehicleSummary }}
+            <p
+              data-testid="sidebar-driver-vehicle"
+              class="truncate font-mono text-[10px] text-highway-muted"
+            >
+              {{ driver.vehicleSummary }}
             </p>
           </div>
         </div>

@@ -19,10 +19,10 @@
 
 ## 5. Front-end: Layout Auth, Middleware, Composable, Páginas e Sidebar
 
-- [ ] 5.1 Criar `app/layouts/auth.vue` no tema Night Highway (`#141416`, card `#1d1d20` com borda âmbar, `AppRoadDivider` e logotipo `ESTRADA+`) e `app/composables/useAuthSession.ts` compatível com SSR e CSR
-- [ ] 5.2 Criar `app/middleware/auth.global.ts` protegendo rotas operacionais, liberando `/login`, `/forgot-password` e `/reset-password`, e redirecionando sessão ativa em `/login` para `/`
-- [ ] 5.3 Implementar `app/pages/login.vue`, `app/pages/forgot-password.vue` e `app/pages/reset-password.vue` com `UForm`, estados de carregamento/erro/confirmação em `pt-BR`, acessibilidade e `<= 250` linhas por SFC
-- [ ] 5.4 Integrar `app/layouts/default.vue` e `app/components/layout/AppSidebar.vue` com `useAuthSession()` (`user.name`, `user.vehicleSummary`, `user.initials` e `logout()` + `navigateTo('/login')`)
+- [x] 5.1 Criar `app/layouts/auth.vue` no tema Night Highway (`#141416`, card `#1d1d20` com borda âmbar, `AppRoadDivider` e logotipo `ESTRADA+`) e `app/composables/useAuthSession.ts` compatível com SSR e CSR
+- [x] 5.2 Criar `app/middleware/auth.global.ts` protegendo rotas operacionais, liberando `/login`, `/forgot-password` e `/reset-password`, e redirecionando sessão ativa em `/login` para `/`
+- [x] 5.3 Implementar `app/pages/login.vue`, `app/pages/forgot-password.vue` e `app/pages/reset-password.vue` com `UForm`, estados de carregamento/erro/confirmação em `pt-BR`, acessibilidade e `<= 250` linhas por SFC
+- [x] 5.4 Integrar `app/layouts/default.vue` e `app/components/layout/AppSidebar.vue` com `useAuthSession()` (`user.name`, `user.vehicleSummary`, `user.initials` e `logout()` + `navigateTo('/login')`)
 
 ## 6. Testes Automatizados e Quality Gate
 
