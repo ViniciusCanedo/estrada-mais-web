@@ -1,7 +1,7 @@
 ## 1. Utilitários Puros e Schemas Zod
 
-- [ ] 1.1 Criar `shared/utils/telematics.ts` com `parseCityAndState`, `tryParseCityAndState`, `isValidBrazilianState`, `calculateTripTelematics` e `calculateTripListSummary` (média ponderada real, sem divisão por zero ou `NaN`)
-- [ ] 1.2 Criar `shared/schemas/trip.schema.ts` com `tripPayloadSchema`, `tripFilterQuerySchema`, `tripIdParamsSchema`, `tripDtoSchema`, `tripListSummarySchema` e tipos inferidos em `pt-BR` compatíveis com `exactOptionalPropertyTypes`
+- [x] 1.1 Criar `shared/utils/telematics.ts` com `parseCityAndState`, `tryParseCityAndState`, `isValidBrazilianState`, `calculateTripTelematics` e `calculateTripListSummary` (média ponderada real, sem divisão por zero ou `NaN`)
+- [x] 1.2 Criar `shared/schemas/trip.schema.ts` com `tripPayloadSchema`, `tripFilterQuerySchema`, `tripIdParamsSchema`, `tripDtoSchema`, `tripListSummarySchema` e tipos inferidos em `pt-BR` compatíveis com `exactOptionalPropertyTypes`
 
 ## 2. Repository e Service Transacional
 
