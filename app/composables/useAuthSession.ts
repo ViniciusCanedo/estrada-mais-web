@@ -23,8 +23,25 @@ export interface AuthSessionState {
 interface FetchErrorShape {
   data?: {
     message?: unknown
+    data?: {
+      message?: unknown
+    }
   }
   message?: unknown
+}
+
+function pickNonEmptyString(value: unknown, allowBracketPrefix = true): string | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const trimmed = value.trim()
+  if (trimmed.length === 0) {
+    return null
+  }
+  if (!allowBracketPrefix && trimmed.startsWith('[')) {
+    return null
+  }
+  return value
 }
 
 /**
@@ -36,19 +53,12 @@ export function extractAuthErrorMessage(error: unknown, fallback: string): strin
   }
 
   const candidate = error as FetchErrorShape
-  if (typeof candidate.data?.message === 'string' && candidate.data.message.trim().length > 0) {
-    return candidate.data.message
-  }
-
-  if (
-    typeof candidate.message === 'string' &&
-    candidate.message.trim().length > 0 &&
-    !candidate.message.trim().startsWith('[')
-  ) {
-    return candidate.message
-  }
-
-  return fallback
+  return (
+    pickNonEmptyString(candidate.data?.message) ??
+    pickNonEmptyString(candidate.data?.data?.message) ??
+    pickNonEmptyString(candidate.message, false) ??
+    fallback
+  )
 }
 
 function createAuthStateRefs(): {
